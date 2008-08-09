@@ -26,7 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307,
 USA, or go to http://www.gnu.org/copyleft/lesser.html
 '''
 
-print 'TimML version 3.1.beta1'
+print 'TimML version 3.1.beta1, test for svn'
 # Import all other files
 from ml import *
 from mlaquifer import *
