@@ -1,5 +1,7 @@
 '''
-mlholinesink.py contains the HoLineSink class.
+mlholinesink.py contains the LineSinkHoLap class.
+It is a higher order Laplace line-sink. Only one layer can be specified
+(where the boundary condition is applied), and it does not generate leakage.
 This file is part of the TimML library and is distributed under
 the GNU LPGL. See the TimML.py file for more details.
 (c) Mark Bakker, 2002-2007

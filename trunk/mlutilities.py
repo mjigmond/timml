@@ -20,7 +20,7 @@ def surfgrid(ml,xmin,xmax,nx,ymin,ymax,ny,filename='/temp/dump',Naquifers=1):
         aquiferRange = list( array(Naquifers)-1 ) 
     else:
         aquiferRange = range(Naquifers)
-    for i in range(aquiferRange[-1]+1):
+    for i in range(max(aquiferRange)+1):
         rows = rows + [[]]        
     for j in range(ny+1):
         y=ymin + j*ystep

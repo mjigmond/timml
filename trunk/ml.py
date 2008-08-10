@@ -414,13 +414,14 @@ class Model:
         a,b,c,d = traceline(self,xstart,ystart,zstart,stepin,tmax,maxsteps,tstart,window,labfrac,Hfrac)
         return a,b,c,d
 
-    def solve(self,reInitializeAllElements=1,doIterations=False,maxIter=5,storematrix=False):
+    def solve(self,reInitializeAllElements=1,doIterations=False,maxIter=5,storematrix=False,conditionnumber=False):
         '''Compute solution
         reInitializeAllElements: Initializes all elements and aquifers (default is 1)
         doIterations: Iterates for non-linear conditions if present
         maxIter: Maximum number of iterations. If reached before convergence a message is written to the screen
         storematrix: Logical to to indicate whether the matrix should remain stored. Only useful during development
         '''
+        self.matrix = 0; self.rhs = 0; self.xsol = 0; self.eqcumlist = 0  # If not created (no unknowns) they need to exist to be deleted
         print 'Starting solve'
         newsolution = self.solveNonLinear( 1, reInitializeAllElements )
         if doIterations:  
@@ -433,6 +434,9 @@ class Model:
                 print 'Warning: Maximum number of iterations reached before convergence'
             else:
                 print 'Iterations complete'
+        if conditionnumber:
+            u,s,vh = linalg.svd(self.matrix)
+            print 'Condition number: ',s[0]/s[-1]
         if not storematrix:
             del self.matrix; del self.rhs; del self.xsol; del self.eqcumlist
         print 'Solution complete'
@@ -473,6 +477,7 @@ class Model:
             print ' ' # Just to end the printing in a row
             eqcumlist = cumsum(eq_list)
             self.eqcumlist = eqcumlist - 1
+            #print 'matrix ',matrix
             matrix = array(matrix)
             size = shape(matrix)
             if size[0] == 0:
