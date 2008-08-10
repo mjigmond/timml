@@ -54,7 +54,7 @@ class CircleInhom(Element):
             for p in range(self.order+1):
                 self.matRout[p,0] = 1./self.R**(p)  # first value in row is 1/r**p
                 self.matRout[p,1:] = scipy.special.kn(p,rolab) # other values are Kp
-            self.matRout[0,0] = log(self.R) / (2.0*pi)  # first term is logarithm
+            self.matRout[0,0] = log(self.R+1.0) / (2.0*pi)  # first term is logarithm, so scale by log(self.R+1)to make sure that self.R can be 1
         elif self.aqout.type == self.aqout.semi:
             for p in range(self.order+1):
                 self.matRout[p,:] = scipy.special.kn(p,rolab) # other values are Kp
@@ -290,6 +290,18 @@ class CircleInhom(Element):
         else:
             rvx = hstack(( zeros( (aq.Naquifers,self.Nparamin), 'd' ), rvx ))
             rvy = hstack(( zeros( (aq.Naquifers,self.Nparamin), 'd' ), rvy ))
+        return [rvx,rvy]
+    def dischargeInfluenceInLayer(self,aq,pylayer,x,y):
+        '''Returns dischargeInfluence in pylayer, modified for paramin and paramout'''
+        [disx,disy] = self.dischargeInfluence(aq,x,y)
+        rvx = disx * aq.eigvec[pylayer,:]
+        rvy = disy * aq.eigvec[pylayer,:]
+        if aq == self.aqin:
+            rvx = hstack(( rvx.ravel(), zeros( self.Nparamout, 'd' ) ))
+            rvy = hstack(( rvy.ravel(), zeros( self.Nparamout, 'd' ) ))
+        else:
+            rvx = hstack(( zeros( self.Nparamin, 'd' ), rvx.ravel() ))
+            rvy = hstack(( zeros( self.Nparamin, 'd' ), rvy.ravel() ))
         return [rvx,rvy]
     def dischargeInfluenceSpecLayers(self,aq,pylayer,x,y):
         '''Returns dischargeInfluenceAllLayers function in aquifer aq as an array

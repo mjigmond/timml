@@ -380,6 +380,45 @@ class CircleInhomData(AquiferData):
     def layout(self):
         theta = arange(0,2*pi+1e-5,pi/50)
         return [ list( self.xc + self.R * cos(theta) ), list( self.yc + self.R * sin(theta) ) ]
+    def crossBoundary(self,pyLayer,xyz1,xyz2,aqOther,step,idir):
+        tol = 1e-8  # Tolerance used to step to edge of circle
+        changed = 0; stop = 0; xyznew = 0.0; backToOld = 0
+        [x1,y1,z1] = xyz1; [x2,y2,z2] = xyz2
+        R1 = sqrt( (x1-self.xc)**2 + (y1-self.yc)**2 )
+        R2 = sqrt( (x2-self.xc)**2 + (y2-self.yc)**2 )
+        if ( R1 < self.R and R2 > self.R ) or ( R1 > self.R and R2 < self.R ):
+            changed = 1  # Point will be changed
+            # Check if number of aquifers is same on both sides, taking into account fakesemi
+            # Not tested for anyting but Naq == NaqOther
+            Naq = self.Naquifers
+            if self.fakesemi: Naq = Naq - 1
+            NaqOther = aqOther.Naquifers
+            if aqOther.fakesemi: NaqOther = NaqOther - 1
+            if Naq == NaqOther:
+                a = (x2-x1)**2 + (y2-y1)**2
+                b = 2.0 * ( (x2-x1) * (x1-self.xc) + (y2-y1) * (y1-self.yc) )
+                if R1 < self.R:
+                    if R1 < (1.0-tol)*self.R:  # first step to just inside circle
+                        backToOld = 1
+                        c = self.xc**2 + self.yc**2 + x1**2 + y1**2 - 2.0 * (self.xc*x1 +self.yc*y1) - (1.0-tol)*self.Rsq
+                    else:
+                        c = self.xc**2 + self.yc**2 + x1**2 + y1**2 - 2.0 * (self.xc*x1 +self.yc*y1) - (1.0+tol)*self.Rsq
+                else:
+                    if R1 > (1.0+tol)*self.R:  # first step to just outside circle
+                        backToOld = 1
+                        c = self.xc**2 + self.yc**2 + x1**2 + y1**2 - 2.0 * (self.xc*x1 +self.yc*y1) - (1.0+tol)*self.Rsq
+                    else:
+                        c = self.xc**2 + self.yc**2 + x1**2 + y1**2 - 2.0 * (self.xc*x1 +self.yc*y1) - (1.0-tol)*self.Rsq
+                u1 = ( -b - sqrt(b**2 - 4.0*a*c) ) / (2.0*a)
+                u2 = ( -b + sqrt(b**2 - 4.0*a*c) ) / (2.0*a)
+                u = u1
+                if u <= 0: u = u2
+                xn = x1 + u * (x2-x1); yn = y1 + u * (y2-y1)
+                zn = xyz1[2] + u * ( xyz2[2] - xyz1[2] )
+                xyznew = array([xn,yn,zn],'d')
+            else:
+                print 'Naq not equal to Naqother. This case is not implemented'
+        return [changed, stop, xyznew, backToOld]
 
 class EllipseInhomData(AquiferData):
     '''Class containing data of elliptical inhomogeneity.

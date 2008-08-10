@@ -1,10 +1,6 @@
 '''
-Copyright (C), 2002-2007, Mark Bakker.
-Mark Bakker
-Water Resources Section
-Faculty of Civil Engineering and Geosciences
-TU Delft
-Stevingweg 1, Delft, The Netherlands
+Copyright (C), 2002-2008, Mark Bakker.
+Mark Bakker, markbak@gmail.com
 
 TimML is a computer program for the simulation of steady-state
 multiaquifer flow with analytic elements and consists of a
@@ -26,7 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307,
 USA, or go to http://www.gnu.org/copyleft/lesser.html
 '''
 
-print 'TimML version 3.1.beta1, test for svn'
+print 'TimML version 3.2'
 # Import all other files
 from ml import *
 from mlaquifer import *
@@ -39,12 +35,14 @@ from mllinedoublet import *
 from mlinhom import *
 from mlcircinhom import *
 from mlutilities import *
+#from mlcollectorwell import *
 from mlholineelements import *
 from mlpolyareasink import *
 from mltrace import *
 from mlholinesink import *
 from mllinesinkgeneral import *
-# Load pycontour
-##from mlpylabutil import *
-# Load GUI
-##from TimMLmpl import *
+from mllinedoubletimp import *
+#from TimMLmpl import *
+#from mlpylabutil import *
+
+

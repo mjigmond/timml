@@ -313,7 +313,7 @@ def traceline(ml,xstart,ystart,zstart,stepin,tmax=1e30,maxsteps=10,tstart=0.0,wi
             stop = 1
             stopreason = 'reached tmax'
             break  # Nicelye stops at tmax; assumes smooth transition between last two points
-
+        
         # Check if new point inside window (Should be modified to nicely stop at window boundary!)
         if xyznew[0] < xmin or xyznew[0] > xmax or xyznew[1] < ymin or xyznew[1] > ymax :
             if xyznew[1] > ymax:
