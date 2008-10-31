@@ -45,10 +45,15 @@ class LineDoublet(Element):
 #        zcp2 = self.z1 + .75 * (self.z2 - self.z1)
         self.Ncp = int( ( self.Ndegree+1 ) * self.overspec )
         an = arange( pi / (2.0*self.Ncp), pi, pi/self.Ncp )
-        Xcp = cos( an )
-        zc = 0.5*(self.z1+self.z2)
-        zcp = zc + Xcp * (self.z1 - zc)
-        self.xcp = zcp.real; self.ycp = zcp.imag
+        Zcp = zeros( self.Ncp, 'D' )
+        Zcp.real = cos(an)
+        Zcp.imag = 1e-6  # control point just on inside
+        zcp = Zcp * (self.z2 - self.z1) / 2.0 + 0.5 * (self.z1 + self.z2)
+        self.xcpin = zcp.real; self.ycpin = zcp.imag
+        Zcp.imag = -1e-6  # control point just on inside
+        zcp = Zcp * (self.z2 - self.z1) / 2.0 + 0.5 * (self.z1 + self.z2)
+        self.xcpout = zcp.real; self.ycpout = zcp.imag
+        #
         self.potInf = zeros(self.Ndegree+1,'d')
         self.disxInf = zeros(self.Ndegree+1,'d'); self.disyInf = zeros(self.Ndegree+1,'d')
 ##        assert self.aqout.Naquifers == 1 or self.aqin.Naquifers == 1, \
@@ -223,13 +228,13 @@ class LineDoublet(Element):
             for e in elementList:
                 # Modification for fakesemi
                 if not self.aqin.fakesemi:
-                    rowinpart = e.getMatrixCoefficients(self.aqin,pylayer,self.xcp[i],self.ycp[i],\
+                    rowinpart = e.getMatrixCoefficients(self.aqin,pylayer,self.xcpin[i],self.ycpin[i],\
                                                 lambda el,aq,pylayer,x,y:el.potentialInfluenceInLayer(aq,pylayer,x,y))
                 else:
-                    rowinpart = e.getMatrixCoefficients(self.aqin,pylayer+1,self.xcp[i],self.ycp[i],\
+                    rowinpart = e.getMatrixCoefficients(self.aqin,pylayer+1,self.xcpin[i],self.ycpin[i],\
                                                 lambda el,aq,pylayer,x,y:el.potentialInfluenceInLayer(aq,pylayer,x,y))
                 rowin = hstack(( rowin, rowinpart ))
-                rowoutpart = e.getMatrixCoefficients(self.aqout,pylayer,self.xcp[i],self.ycp[i],\
+                rowoutpart = e.getMatrixCoefficients(self.aqout,pylayer,self.xcpout[i],self.ycpout[i],\
                                                 lambda el,aq,pylayer,x,y:el.potentialInfluenceInLayer(aq,pylayer,x,y))
                 rowout = hstack(( rowout, rowoutpart ))
                 if not self.aqin.fakesemi:
@@ -238,12 +243,12 @@ class LineDoublet(Element):
                     row = self.aqout.T[pylayer] * array(rowin) - self.aqin.T[pylayer+1] * array(rowout)
             if not self.aqin.fakesemi:
                 row = hstack(( row,
-                        self.aqin.T[pylayer] * self.modelParent.potentialInLayer(self.aqout,pylayer,self.xcp[i],self.ycp[i]) -\
-                        self.aqout.T[pylayer] * self.modelParent.potentialInLayer(self.aqin,pylayer,self.xcp[i],self.ycp[i]) ))
+                        self.aqin.T[pylayer] * self.modelParent.potentialInLayer(self.aqout,pylayer,self.xcpout[i],self.ycpout[i]) -\
+                        self.aqout.T[pylayer] * self.modelParent.potentialInLayer(self.aqin,pylayer,self.xcpin[i],self.ycpin[i]) ))
             else:
                 row = hstack(( row,
-                        self.aqin.T[pylayer+1] * self.modelParent.potentialInLayer(self.aqout,pylayer,self.xcp[i],self.ycp[i]) -\
-                        self.aqout.T[pylayer] * self.modelParent.potentialInLayer(self.aqin,pylayer+1,self.xcp[i],self.ycp[i]) ))
+                        self.aqin.T[pylayer+1] * self.modelParent.potentialInLayer(self.aqout,pylayer,self.xcpout[i],self.ycpout[i]) -\
+                        self.aqout.T[pylayer] * self.modelParent.potentialInLayer(self.aqin,pylayer+1,self.xcpin[i],self.ycpin[i]) ))
             rows = rows + [row.tolist()]
         return rows
     def getMatrixCoefficients(self,aq,pylayer,x,y,func):
@@ -258,26 +263,16 @@ class LineDoublet(Element):
     def check(self):
         print 'LineDoublet from '+str(self.z1)+' to '+str(self.z2)+' Top Layer '
         for i in range(self.Ndegree+1):
-            if not self.aqin.fakesemi:
-                print 'Control point: '+str(i)+\
-                      ' Head inside : '+str(self.modelParent.head(1,self.xcp[i],self.ycp[i],self.aqin))+\
-                      ' Head outside: '+str(self.modelParent.head(1,self.xcp[i],self.ycp[i],self.aqout))
-            else:
-                print 'Control point: '+str(i)+\
-                      ' Head inside : '+str(self.modelParent.head(2,self.xcp[i],self.ycp[i],self.aqin))+\
-                      ' Head outside: '+str(self.modelParent.head(1,self.xcp[i],self.ycp[i],self.aqout))
+            print 'Control point: '+str(i)+\
+                  ' Head inside : '+str(self.modelParent.head(1,self.xcpin[i],self.ycpin[i],self.aqin))+\
+                  ' Head outside: '+str(self.modelParent.head(1,self.xcpout[i],self.ycpout[i],self.aqout))
         return None
     def check_normalflow(self):
         print 'LineDoublet from '+str(self.z1)+' to '+str(self.z2)+' Top Layer '
         for i in range(self.Ndegree+1):
-            if not self.aqin.fakesemi:
-                print 'Control point: '+str(i)+\
-                      ' Qnorm inside : '+str(self.modelParent.dischargeNormInLayer(self.aqin,0,self.xcp[i],self.ycp[i],self.thetaNormOut))+\
-                      ' Qnorm outside: '+str(self.modelParent.dischargeNormInLayer(self.aqout,0,self.xcp[i],self.ycp[i],self.thetaNormOut))
-##            else:
-##                print 'Control point: '+str(i)+\
-##                      ' Head inside : '+str(self.modelParent.head(2,self.xcp[i],self.ycp[i],self.aqin))+\
-##                      ' Head outside: '+str(self.modelParent.head(1,self.xcp[i],self.ycp[i],self.aqout))
+            print 'Control point: '+str(i)+\
+                  ' Qnorm inside : '+str(self.modelParent.dischargeNormInLayer(self.aqin,0,self.xcpin[i],self.ycpin[i],self.thetaNormOut))+\
+                  ' Qnorm outside: '+str(self.modelParent.dischargeNormInLayer(self.aqout,0,self.xcpout[i],self.ycpout[i],self.thetaNormOut))
         return None
     def nearElement(self,pyLayer,xyz1,xyz2,step,idir):
         # Not doing anything right now. Should really only do something if 1 aquifer both in and out. Else line-sink is doing the work
@@ -466,12 +461,12 @@ class LineDoubletString(Element):
             ld = self.ldList[i]
             for icp in range(ld.Ncp):  # Modified for arbitrary number of control points
                 row = []; rowin = []; rowout = []
-                xcp = ld.xcp[icp]; ycp = ld.ycp[icp]
+                #xcp = ld.xcp[icp]; ycp = ld.ycp[icp]
                 for e in elementList:
-                    rowinpart = e.getMatrixCoefficients(self.aqin,pylayer,ld.xcp[icp],ld.ycp[icp],\
+                    rowinpart = e.getMatrixCoefficients(self.aqin,pylayer,ld.xcpin[icp],ld.ycpin[icp],\
                                                     lambda el,aq,pylayer,x,y:el.potentialInfluenceInLayer(aq,pylayer,x,y))
                     rowin = rowin + rowinpart.tolist()
-                    rowoutpart = e.getMatrixCoefficients(self.aqout,pylayer,ld.xcp[icp],ld.ycp[icp],\
+                    rowoutpart = e.getMatrixCoefficients(self.aqout,pylayer,ld.xcpout[icp],ld.ycpout[icp],\
                                                     lambda el,aq,pylayer,x,y:el.potentialInfluenceInLayer(aq,pylayer,x,y))
                     rowout = rowout + rowoutpart.tolist()
                     row = self.aqout.T[pylayer] * array(rowin) - self.aqin.T[pylayer] * array(rowout)
@@ -480,8 +475,8 @@ class LineDoubletString(Element):
                         matrow = self.aqout.T[pylayer] * rowinpart - self.aqin.T[pylayer] * rowoutpart
                         matleast = matleast + [matrow.tolist()]
                 rhs = rhs + [\
-                    self.aqin.T[pylayer] * self.modelParent.potentialInLayer(self.aqout,pylayer,ld.xcp[icp],ld.ycp[icp]) -\
-                    self.aqout.T[pylayer] * self.modelParent.potentialInLayer(self.aqin,pylayer,ld.xcp[icp],ld.ycp[icp]) ]
+                    self.aqin.T[pylayer] * self.modelParent.potentialInLayer(self.aqout,pylayer,ld.xcpout[icp],ld.ycpout[icp]) -\
+                    self.aqout.T[pylayer] * self.modelParent.potentialInLayer(self.aqin,pylayer,ld.xcpin[icp],ld.ycpin[icp]) ]
                 rows = rows + [row]
         # Now convert with least squares procedure
         matleastT = transpose(matleast)
@@ -505,12 +500,12 @@ class LineDoubletString(Element):
             for i in range(ld.Ndegree+1):
                 if not ld.aqin.fakesemi:
                     print 'Control point: '+str(i)+\
-                          ' Head inside : '+str(ld.modelParent.head(1,ld.xcp[i],ld.ycp[i],ld.aqin))+\
-                          ' Head outside: '+str(ld.modelParent.head(1,ld.xcp[i],ld.ycp[i],ld.aqout))
+                          ' Head inside : '+str(ld.modelParent.head(1,ld.xcpin[i],ld.ycpin[i],ld.aqin))+\
+                          ' Head outside: '+str(ld.modelParent.head(1,ld.xcpout[i],ld.ycpout[i],ld.aqout))
                 else:
                     print 'Control point: '+str(i)+\
-                          ' Head inside : '+str(ld.modelParent.head(2,ld.xcp[i],ld.ycp[i],ld.aqin))+\
-                          ' Head outside: '+str(ld.modelParent.head(1,ld.xcp[i],ld.ycp[i],ld.aqout))
+                          ' Head inside : '+str(ld.modelParent.head(2,ld.xcpin[i],ld.ycpin[i],ld.aqin))+\
+                          ' Head outside: '+str(ld.modelParent.head(1,ld.xcpout[i],ld.ycpout[i],ld.aqout))
         return None
     def nearElement(self,pyLayer,xyz1,xyz2,step,idir):
         # Not doing anything right now. Should really only do something if 1 aquifer both in and out. Else line-sink is doing the work

@@ -19,11 +19,12 @@ class Model:
     - aq: instance of (background) AquiferData class
     For parameters provided on input see AquiferData class
     '''
-    def __init__(self,Naquifers=1,k=[1],zb=[0],zt=[1],c=[],n=[],nll=[],type='conf',hstar=0.0):
+    def __init__(self,Naquifers=1,k=[1],zb=[0],zt=[1],c=[],n=[],nll=[],semi=False,type='conf',hstar=0.0):
         self.elementList = []
         self.elementDict = {}
         self.collectionDict = {}
-        self.aq = Aquifer(Naquifers,k,zb,zt,c,n,nll,type,hstar)
+        self.lakeList = []
+        self.aq = Aquifer(Naquifers,k,zb,zt,c,n,nll,semi=False,type=type,hstar=hstar)
 #        setActiveModel(self)
     def __repr__(self):
 	return 'elementList ' + str(self.elementList)
@@ -105,6 +106,7 @@ class Model:
     def head(self,layer,x,y,aq=None):
         '''Returns head in layer at (x,y) for AquiferData aq; if aq=None, program will find it''' 
         if aq == None: aq = self.aq.findAquiferData(x,y)
+        if aq.fakesemi: layer = layer+1
         pot = self.potential(layer,x,y,aq)
         return aq.potentialToHead(layer-1,pot)
     def head3D(self,x,y,z):
@@ -424,13 +426,24 @@ class Model:
         self.matrix = 0; self.rhs = 0; self.xsol = 0; self.eqcumlist = 0  # If not created (no unknowns) they need to exist to be deleted
         print 'Starting solve'
         newsolution = self.solveNonLinear( 1, reInitializeAllElements )
-        if doIterations:  
+        lakechange = False  # Need to start with false in case there are no lakes
+        if doIterations:
             i = 0
-            while newsolution and i < maxIter:
+            while (newsolution or lakechange) and i < maxIter:
                 print 'Iteration ',i+1
-                newsolution = self.solveNonLinear( start=0 ) # Only reinitializes if start = 1
+                if len(self.lakeList) == 0:
+                    newsolution = self.solveNonLinear( start=0 ) # Only reinitializes if start = 1
+                else:
+                    # Make changes for lakes that percolate
+                    lakechange = False
+                    for lake in self.lakeList:
+                        change = lake.change_lake()
+                        if change: lakechange = True
+                    if lakechange: solution = self.solveNonLinear( 1, reInitializeAllElements ) #Cannot modify existing matrix; need to recompile
+                    # Check for percolating line-sinks
+                    newsolution = self.solveNonLinear( start=0 )
                 i+=1
-            if newsolution and i == maxIter:
+            if (newsolution or lakechange) and i == maxIter:
                 print 'Warning: Maximum number of iterations reached before convergence'
             else:
                 print 'Iterations complete'
@@ -501,7 +514,7 @@ class Model:
                     else:
                         matrix[ eqcumlist[iel],: ] = array( newrows[0][:-1] )
                         rhs[ eqcumlist[iel] ] = newrows[0][-1]
-            print 'Number of elements changed during iteration: ',ichange
+            print 'Number of elements changed (such as percolating line-sinks): ',ichange
             if changed == False: return newsolution_computed
         size = shape(matrix)
         print 'size of matrix '+str(size)
