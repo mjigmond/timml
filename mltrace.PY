@@ -394,6 +394,12 @@ def stepUpLayer(ml,aq,pyLayer,xyzold,xyznew,tstep,idir,xyztrace,tt,lt):
             frac = ( aq.zt[itop] - xyzold[2] ) / ( xyznew[2] - xyzold[2] )
             xyznew = xyzold + frac * ( xyznew - xyzold )
             xyztrace.append(copy.copy(xyznew)); tt.append( tt[-1] + tstep * idir * frac ); lt.append( pyLayer )
+            if aq.fakesemi:
+                xyznew[2] = aq.zb[0]
+                xyztrace.append(copy.copy(xyznew))
+                vxyzLeakyLayer = ml.velocity2( xyznew[0], xyznew[1], 0.0, aq, -pyLayer )
+                extratime = aq.HLeakyLayer[pyLayer] / abs( vxyzLeakyLayer[2] )
+                tt.append( tt[-1] + idir * extratime ); lt.append( pyLayer )
             stop = 1
     return [xyztrace,tt,lt,xyznew,pyLayer,stop]
 

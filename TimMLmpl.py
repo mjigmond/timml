@@ -98,7 +98,7 @@ class NavigationToolbar2TkAgg(NavigationToolbar2, Tk.Frame):
         return b
 
     def _init_toolbar(self):
-        xmin, xmax = self.canvas.figure.bbox.intervalx().get_bounds()
+        xmin, xmax = self.canvas.figure.bbox.intervalx
         height, width = 50, xmax-xmin
         Tk.Frame.__init__(self, master=self.window,
                           width=width, height=height,
@@ -107,23 +107,23 @@ class NavigationToolbar2TkAgg(NavigationToolbar2, Tk.Frame):
         self.update()  # Make axes menu
 
         self.bHome = self._Button( text="Home",
-                                   file=sys.exec_prefix+"\\Lib\\site-packages\\TimML\\"+'home.ppm',
+                                   file='home.ppm',
                                    command=self.home)
 
         self.bBack = self._Button( text="Back",
-                                   file=sys.exec_prefix+"\\Lib\\site-packages\\TimML\\"+'back.ppm',
+                                   file='back.ppm',
                                    command = self.back)
         
         self.bForward = self._Button(text="Forward",
-                                   file=sys.exec_prefix+"\\Lib\\site-packages\\TimML\\"+'forward.ppm',
+                                   file='forward.ppm',
                                      command = self.forward)
 
         self.bPan = self._Button( text="Pan",
-                                   file=sys.exec_prefix+"\\Lib\\site-packages\\TimML\\"+'move.ppm',
+                                   file='move.ppm',
                                   command = self.pan)
 
         self.bZoom = self._Button( text="Zoom",
-                                   file=sys.exec_prefix+"\\Lib\\site-packages\\TimML\\"+'zoom_to_rect.ppm',
+                                   file='zoom_to_rect.ppm',
                                    command = self.zoom)
 
 
@@ -132,15 +132,15 @@ class NavigationToolbar2TkAgg(NavigationToolbar2, Tk.Frame):
 
 
         self.bsave = self._Button( text="Save", 
-                                   file=sys.exec_prefix+"\\Lib\\site-packages\\TimML\\"+'filesave.ppm',
+                                   file='filesave.ppm',
                                    command = self.save_figure)
         
         self.bTrace = self._Button( text="Trace",
-                                   file=sys.exec_prefix+"\\Lib\\site-packages\\TimML\\"+'trace.ppm',
+                                   file='trace.ppm',
                                    command = self.traceline)
 
         self.bCapzone = self._Button( text="Capzone",
-                                   file=sys.exec_prefix+"\\Lib\\site-packages\\TimML\\"+'capzone.ppm',
+                                   file='capzone.ppm',
                                    command = self.capzone)
         
         self.message = Tk.StringVar(master=self)

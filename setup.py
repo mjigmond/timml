@@ -12,14 +12,14 @@
 import sys
 
 if not hasattr(sys, 'version_info') or sys.version_info < (2,3,0,'alpha',0):
-	raise SystemExit, "Python 2.4 or later required to build TimML"
+	raise SystemExit, "Python 2.5 or later required to build TimML"
 
 
 from distutils.core import setup, Extension
 
 setup (name = "TimML",
 	   extra_path = 'TimML',
-	   version = "3.2.py24",
+	   version = "3.3.alpha1.py25",
 	   url="http://www.bakkerhydro.org/timml",
 	   author="Mark Bakker",
 	   author_email="markbak@gmail.com",
@@ -29,6 +29,7 @@ setup (name = "TimML",
 					 "squareinhom_man2",
                                          "percolate",
                                          "imptest",
+                                         "lake_example",
 					 "ml",
 					 "mlinhom",
 					 "mlaquifer",
@@ -39,6 +40,7 @@ setup (name = "TimML",
                                          "mlellipinhom",
 					 "mlholineelements",
 					 "mlholinesink",
+                                         "mllake",
 					 "mllinedoublet",
 					 "mllinesink",
 					 "mllinesinkgeneral",

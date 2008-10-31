@@ -33,7 +33,7 @@ class AquiferData:
     '''
     huge = 1e30
     conf = 1; semi = 2
-    def __init__(self,Naquifers=1,k=[1],zb=[0],zt=[1],c=[],n=[],nll=[],type='conf',hstar=0.0,fakesemi=False):
+    def __init__(self,Naquifers=1,k=[1],zb=[0],zt=[1],c=[],n=[],nll=[],semi=False,type='conf',hstar=0.0):
         # Note that it is important that hstar = 0.0 default. So for confined aquifer we can use same headToPotential!
         self.Naquifers = Naquifers
         self.k = array(k,'d'); self.zb = array(zb,'d'); self.zt = array(zt,'d')
@@ -47,7 +47,8 @@ class AquiferData:
             self.c = array( list(c) + [self.huge], 'd' )
             self.nll = array(nll,'d')
         self.hstar = float(hstar)
-        self.fakesemi = fakesemi
+        self.fakesemi = False
+        if semi: self.fakesemi = True
         self.setCoefs()
     def __repr__(self):
 	return 'AquiferData N,k,zb,zt,c: ' + str((self.Naquifers,list(self.k),list(self.zb),list(self.zt),list(self.c)))
@@ -161,8 +162,8 @@ class Aquifer(AquiferData):
     - inhomList: list of inhomogeneity elements (for now only PolygonInhom)
     - all attributes of AquiferData
     '''
-    def __init__(self,Naquifers=1,k=[1],zb=[0],zt=[1],c=[],n=[],nll=[],type='conf',hstar=0.0):
-        AquiferData.__init__(self,Naquifers,k,zb,zt,c,n,nll,type,hstar)
+    def __init__(self,Naquifers=1,k=[1],zb=[0],zt=[1],c=[],n=[],nll=[],semi=False,type='conf',hstar=0.0):
+        AquiferData.__init__(self,Naquifers,k,zb,zt,c,n,nll,semi,type,hstar)
         self.inhomList = []
     def addInhom(self,aq):
         self.inhomList.append(aq)
@@ -184,6 +185,12 @@ class PolygonInhom(AquiferData):
     - zt: row vector of top elevations of aquifers; length Naquifers
     - c: row vector of resistances of leaky layers; length Naquifers - 1
     - xylist: list of tuples of xy pairs: [(x1,y1),(x2,y2),...]; length Ncorners; first point is NOT repeated
+    Keyword arguments:
+    - n: list with porosities of the aquifers (if not provided set to 0.3)
+    - nll: list with porosities of the leaky layers (if not provided set to 0.3)
+    - semi: default is False. When set to True, the water in the top aquifer is treated as a water table above 
+      a semi-confining layer. In this case, the number of aquifers must be 1 more than the number of aquifers
+      in the part of the model where semi is set to False. 
     Attributes computed:
     - Ncorners: number of corners of polygon
     - z1: list of complex coordinates of begin points of polygon segments; length Ncorners-1
@@ -194,9 +201,10 @@ class PolygonInhom(AquiferData):
     - xmax: maximum x of bounding box
     '''
     tiny = 1e-8
-    def __init__(self,modelParent,Naquifers,k,zb,zt,c,xylist,n=[],nll=[],type='conf',hstar=0.0,fakesemi=False):        
-        AquiferData.__init__(self,Naquifers,k,zb,zt,c,n,nll,type,hstar,fakesemi)
+    def __init__(self,modelParent,Naquifers,k,zb,zt,c,xylist,n=[],nll=[],semi=False,type='conf',hstar=0.0):        
+        AquiferData.__init__(self,Naquifers,k,zb,zt,c,n,nll,semi,type,hstar)
         self.modelParent = modelParent; modelParent.aq.addInhom(self)
+        xylist = check_direction(xylist)
         self.xylist = xylist; self.Ncorners = len(self.xylist)
         xcorners = []; ycorners = []; self.z1 = []
         for xy in self.xylist:
@@ -339,6 +347,24 @@ class PolygonInhom(AquiferData):
 
                         return [changed, stop, xyznew, backToOld]  # Didn't adjust time
         return [changed, stop, xyznew, backToOld]
+
+def check_direction(xylist):
+    x,y = zip(*xylist)
+    if x[0] == x[-1] and y[0] == y[-1]:  # In case last point is repeated
+        x = x[:-1]; y = y[:-1]
+    z1 = array(x) + array(y) * 1j
+    index = range(1,len(z1)) + [0]
+    z2 = z1[index]
+    Z = 1e-6j
+    z = Z * (z2[0] - z1[0]) / 2.0 + 0.5 * (z1[0] + z2[0])
+    bigZ = ( 2.0*z - (z1 + z2) )/ (z2 - z1)
+    bigZmin1 = bigZ - 1.0; bigZplus1 = bigZ + 1.0
+    angle = sum( log( bigZmin1 / bigZplus1 ).imag )
+    if angle < pi: # reverse order
+        xylist = zip(x[::-1],y[::-1])
+    else:
+        xylist = zip(x,y) # Is corrected for repeated point at end
+    return xylist
         
 class PolygonInhomComp(PolygonInhom):
     def __init__(self,modelParent,z=[1,0.5,0],kh=1.0,kzoverkh=1.0,xylist=[],n=[],nll=[]):
@@ -368,8 +394,8 @@ class CircleInhomData(AquiferData):
     Attributes computed:
     - Rsq: square of radius
     '''
-    def __init__(self,modelParent,Naquifers,k,zb,zt,c,xc,yc,R,n=[],nll=[],type='conf',hstar=0.0):        
-        AquiferData.__init__(self,Naquifers,k,zb,zt,c,n,nll,type,hstar)
+    def __init__(self,modelParent,Naquifers,k,zb,zt,c,xc,yc,R,n=[],nll=[],semi=False,type='conf',hstar=0.0):        
+        AquiferData.__init__(self,Naquifers,k,zb,zt,c,n,nll,semi,type,hstar)
         self.modelParent = modelParent; modelParent.aq.addInhom(self)
         self.xc = float(xc); self.yc = float(yc); self.R = float(R); self.Rsq = R*R
     def __repr__(self):
@@ -441,8 +467,8 @@ class EllipseInhomData(AquiferData):
     - afoc: focal distance
     - etastar: eta value along ellipse
     '''
-    def __init__(self,modelParent,Naquifers,k,zb,zt,c,xc,yc,along,bshort,alpha,n=[],nll=[],type='conf',hstar=0.0):        
-        AquiferData.__init__(self,Naquifers,k,zb,zt,c,n,nll,type,hstar)
+    def __init__(self,modelParent,Naquifers,k,zb,zt,c,xc,yc,along,bshort,alpha,n=[],nll=[],semi=False,type='conf',hstar=0.0):        
+        AquiferData.__init__(self,Naquifers,k,zb,zt,c,n,nll,semi,type,hstar)
         self.modelParent = modelParent; modelParent.aq.addInhom(self)
         self.xc = float(xc); self.yc = float(yc); self.along = float(along); self.bshort = bshort;
         assert self.along > self.bshort, "TimML Input error: Long axis of ellipse must be larger than short axis"

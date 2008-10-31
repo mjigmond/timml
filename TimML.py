@@ -1,6 +1,7 @@
 '''
-Copyright (C), 2002-2008, Mark Bakker.
-Mark Bakker, markbak@gmail.com
+Copyright (C), 2002-2006, Mark Bakker.
+Mark Bakker, 304 Driftmier Engineering Center, University of
+Georgia, Athens, GA 30602, USA. mbakker@engr.uga.edu
 
 TimML is a computer program for the simulation of steady-state
 multiaquifer flow with analytic elements and consists of a
@@ -22,7 +23,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307,
 USA, or go to http://www.gnu.org/copyleft/lesser.html
 '''
 
-print 'TimML version 3.2'
+print 'TimML version 3.3.alpha1'
 # Import all other files
 from ml import *
 from mlaquifer import *
@@ -42,6 +43,7 @@ from mltrace import *
 from mlholinesink import *
 from mllinesinkgeneral import *
 from mllinedoubletimp import *
+from mllake import *
 #from TimMLmpl import *
 #from mlpylabutil import *
 
