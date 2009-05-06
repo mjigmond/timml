@@ -19,7 +19,7 @@ from distutils.core import setup, Extension
 
 setup (name = "TimML",
 	   extra_path = 'TimML',
-	   version = "3.3.alpha1.py25",
+	   version = "3.3.alpha2.py25",
 	   url="http://www.bakkerhydro.org/timml",
 	   author="Mark Bakker",
 	   author_email="markbak@gmail.com",

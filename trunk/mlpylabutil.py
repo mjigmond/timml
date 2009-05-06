@@ -102,8 +102,9 @@ def pycontour( ml, xmin, xmax, nx, ymin, ymax, ny, Naquifers=1, levels = 10, col
 ##                ax.axis((xmin,xmax,ymin,ymax))
 ##                ax.axis('scaled')
         ax = subplot(111)
-        ax.axis((xmin,xmax,ymin,ymax))
         ax.axis('scaled')
+        ax.axis((xmin,xmax,ymin,ymax))
+        draw()
         if layout: pylayout(ml)
         for k in range(len(aquiferRange)):
             if fill:

@@ -72,19 +72,19 @@ class Well(Element):
 #            self.paramxcoef = self.parameters[0,0] * self.coef[0,:]
     def potentialInfluence(self,aq,x,y,z=0,t=0):
         # Makes use of scipy.special.K0 to compute Bessel function
-        rv = zeros( aq.Naquifers, 'd' )
+        rv = zeros( (self.NscreenedLayers,aq.Naquifers), 'd' )
         if self.aquiferParent.type == self.aquiferParent.conf:
             if aq.type == aq.conf:
                 rsq = (x-self.xw)**2 + (y-self.yw)**2
                 rsq = max( rsq, self.rwsq )
-                rv[0] = log(rsq/self.rwsq)/(4*pi)
+                rv[:,0] = log(rsq/self.rwsq)/(4*pi)
                 if self.aquiferParent == aq:            # Compute Bessel functions
                     for i in range(aq.Naquifers - 1):
                         rsqolam = rsq / aq.lab[i]**2
                         if rsqolam <= self.Rconvsq:
                             rolam = sqrt(rsqolam)
-                            rv[i+1] = scipy.special.k0(rolam)
-                rv = self.coef * rv                 # Multiply with coefficients 
+                            rv[:,i+1] = scipy.special.k0(rolam)
+                    rv = self.coef * rv     # Only multiply with coefficients if Bessel part is computed, cause in fakesemi there are more aquifers, and first coef is zero
 ##        elif self.aquiferParent.type == self.aquiferParent.semi:
 ##            if self.aquiferParent == aq:                # In same semi-confined aquifer
 ##                rsq = (x-self.xw)**2 + (y-self.yw)**2
@@ -98,7 +98,7 @@ class Well(Element):
 ##                # Else we return zeros
         return rv
     def dischargeInfluence(self,aq,x,y):
-        rvx = zeros(aq.Naquifers,'d'); rvy = zeros(aq.Naquifers,'d')
+        rvx = zeros((self.NscreenedLayers,aq.Naquifers),'d'); rvy = zeros((self.NscreenedLayers,aq.Naquifers),'d')
         if self.aquiferParent.type == self.aquiferParent.conf:
             if aq.type == aq.conf:
                 rsq = (x-self.xw)**2 + (y-self.yw)**2
@@ -106,8 +106,8 @@ class Well(Element):
                 if rsq < self.rwsq:
                     rsq = self.rwsq
                     xminxw = self.rw; yminyw = 0.0
-                rvx[0] = -1.0/(2.0*pi) * xminxw / rsq
-                rvy[0] = -1.0/(2.0*pi) * yminyw / rsq 
+                rvx[:,0] = -1.0/(2.0*pi) * xminxw / rsq
+                rvy[:,0] = -1.0/(2.0*pi) * yminyw / rsq 
                 if aq == self.aquiferParent:            # Compute Bessel functions
                     r = sqrt(rsq)
                     for i in range(aq.Naquifers - 1):
@@ -115,9 +115,9 @@ class Well(Element):
                         if rsqolam <= self.Rconvsq:
                             rolam = sqrt(rsqolam)
                             kone = scipy.special.k1(rolam)
-                            rvx[i+1] = kone * xminxw / (r * aq.lab[i])
-                            rvy[i+1] = kone * yminyw / (r * aq.lab[i])
-                rvx = self.coef * rvx; rvy = self.coef * rvy
+                            rvx[:,i+1] = kone * xminxw / (r * aq.lab[i])
+                            rvy[:,i+1] = kone * yminyw / (r * aq.lab[i])
+                    rvx = self.coef * rvx; rvy = self.coef * rvy  # Only multiply with coefficients if Bessel part is computed, cause in fakesemi there are more aquifers
 ##        elif self.aquiferParent.type == self.aquiferParent.semi:
 ##            if self.aquiferParent == aq:                # In same semi-confined aquifer
 ##                rsq = (x-self.xw)**2 + (y-self.yw)**2

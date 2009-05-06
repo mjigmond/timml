@@ -51,7 +51,7 @@ def FindAquiferLeftRight(ml,xy1,xy2):
 def MakeInhomSide(ml,xylist,aqleft,aqright,order,closed=False):
     ''' Creates analytic elements along boundary segment of inhomogeneity.
     Will close loop is closed is set to True'''
-    print 'MakeInhomSide is deprecated and replaced by MakeInhomSides'
+    print 'MakeInhomSide is deprecated and replaced by MakeInhomPolySide'
     
     if aqleft.Naquifers == 1 and aqright.Naquifers == 1:
         for i in range(len(xylist)-1):

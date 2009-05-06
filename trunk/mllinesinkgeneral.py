@@ -695,10 +695,10 @@ class DoubleLineSinkGen(Element):
         for icp in range(self.Ncp):
             print 'Control point '+str(icp)
             for i in range(2,self.Naqout+1):
-                i_in = i
-                if self.aqin.fakesemi: i_in = i + 1
+                #i_in = i
+                #if self.aqin.fakesemi: i_in = i + 1
                 print 'Layer '+str(i)+' Head in,out: '+\
-                  str(self.modelParent.head(i_in,self.xcpin[icp],self.ycpin[icp],self.aqin)) + ' ' +\
+                  str(self.modelParent.head(i,self.xcpin[icp],self.ycpin[icp],self.aqin)) + ' ' +\
                   str(self.modelParent.head(i,self.xcpout[icp],self.ycpout[icp],self.aqout))
             for i in range(0,self.Naqout):
                 i_in = i

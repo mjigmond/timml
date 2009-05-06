@@ -55,7 +55,12 @@ class Lake:
         k = [100*self.ml.aq.Tcomp] + self.ml.aq.k.tolist()
         zb = [self.ml.aq.zt[0]+self.Hbot] + self.ml.aq.zb.tolist()
         zt = [zb[0]+1.0] + self.ml.aq.zt.tolist()
-        c = [self.cbot] + self.ml.aq.c.tolist()
+        c = self.ml.aq.c.tolist()
+        if len(c) == 2:  # Only one aquifer
+            c = [self.cbot]
+        else:
+            c.insert(1,self.cbot)
+            c = c[1:-1]  # Strip off first and last value
         n = [self.nbot] + self.ml.aq.n.tolist()
         nll = [self.nbot] + self.ml.aq.nll.tolist()
         self.inhomList.append( PolygonInhom(self.ml,len(k),k,zb,zt,c,xylist,n,nll,True) )
@@ -115,7 +120,7 @@ class Lake:
     def change_lake(self):
         areasinklist,newlake = self.check_percolate(self.ml.aq.zt[0])
         if len(areasinklist) == 0:  # No percolating part
-            if len(self.areasinklist) > 0:  # Need to remove areasink of previous iteration (won't happen much I guess)
+            if len(self.areasinkList) > 0:  # Need to remove areasink of previous iteration (won't happen much I guess)
                 print "Lake doesn't percolate"
                 self.remove_elements()
                 self.setup( self.xylist )
