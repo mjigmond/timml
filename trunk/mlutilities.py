@@ -233,15 +233,17 @@ def Model3D(z=[1,0.5,0],kh=1.0,kzoverkh=1.0):
     zt = z[0:-1]
     zb = z[1:]
     H = zt - zb
-    if type( kh ) is list:
+    if iterable( kh ):
         assert len(kh) == Naq, "TimML Input error: length of kh must equal number of layers" 
         k = array(kh,'d')
     else:
         k = kh * ones(Naq)
-    Hinter = 0.5 * ( H[0:-1] + H[1:] )
-    #Old way to compute c
-    #c = Hinter / ( kzoverkh * 0.5*( k[0:-1] + k[1:] ) )
-    c = 0.5 * Hinter / ( kzoverkh * k[0:-1] ) + 0.5 * Hinter / ( kzoverkh * k[1:] )
+    if iterable( kzoverkh ):
+        assert len(kzoverkh) == Naq, "TimML Input error: length of kh must equal number of layers" 
+        kzoverkh = array(kzoverkh,'d')
+    else:
+        kzoverkh = kzoverkh * ones(Naq)
+    c = 0.5 * H[:-1] / ( kzoverkh[:-1] * k[:-1] ) + 0.5 * H[1:] / ( kzoverkh[1:] * k[1:] )     
     ml = Model( Naq, list(k), list(zb), list(zt), list(c) )
     return ml
 

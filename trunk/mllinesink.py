@@ -513,6 +513,8 @@ class ResLineSink(LineSink):
             self.bottomelev = float(bottomelev) # Only used for determining percolating line-sinks
         else:
             self.bottomelev = None
+	zcp = complex(self.xc,self.yc) + complex(0.0, 0.5 * self.width) * exp( complex( 0.0, self.alpha ) )
+	self.xcp, self.ycp = zcp.real, zcp.imag
     def __repr__(self):
 	return 'ResLineSink z1,z2,head,res,width,strength,layer: ' + \
                str((self.x1,self.y1,self.x2,self.y2,self.head,self.res,self.width,self.parameters,list(self.layers)))
@@ -522,13 +524,13 @@ class ResLineSink(LineSink):
             pot = self.aquiferParent.headToPotential(self.pylayers[i],self.head)     
             row = []
             for e in elementList:
-                rowpart = e.getMatrixCoefficients(self.aquiferParent,self.pylayers[i],self.xc,self.yc,\
+                rowpart = e.getMatrixCoefficients(self.aquiferParent,self.pylayers[i],self.xcp,self.ycp,\
                                 lambda el,aq,pylayer,x,y:el.potentialInfluenceInLayer(aq,pylayer,x,y))
                 if e == self:
                     rowpart[i] = rowpart[i] - self.aquiferParent.T[self.pylayers[i]] * self.res / self.width
                 row = row + rowpart.tolist()
             row = row + [ pot - \
-                          self.modelParent.potentialInLayer(self.aquiferParent,self.pylayers[i],self.xc,self.yc) +\
+                          self.modelParent.potentialInLayer(self.aquiferParent,self.pylayers[i],self.xcp,self.ycp) +\
                           self.parameters[i,0] * self.aquiferParent.T[self.pylayers[i]] * self.res / self.width ]
             rows = rows + [ row ]
         return rows
@@ -545,19 +547,19 @@ class ResLineSink(LineSink):
         for i in range(self.NscreenedLayers):
             if self.connected:
                 print 'Layer '+str(self.layers[i])+' Strength from head difference: '+\
-                  str( ( self.modelParent.head(self.layers[i],self.xc,self.yc) - self.head) * self.width / self.res ) +\
+                  str( ( self.modelParent.head(self.layers[i],self.xcp,self.ycp) - self.head) * self.width / self.res ) +\
                   ' Strength: '+str(self.parameters[i,0])
             else:
                 print 'Layer '+str(self.layers[i])+' Percolating. '+\
                     'Bottom elev., head in aquifer, strength: '+\
-                    str( ( self.bottomelev, self.modelParent.head(self.layers[i],self.xc,self.yc), self.parameters[i,0] ) )
+                    str( ( self.bottomelev, self.modelParent.head(self.layers[i],self.xcp,self.ycp), self.parameters[i,0] ) )
         return None
     def getMatrixRows_nonlinear(self,elementList):
         '''Only checked if screened in only one layer'''
         if self.NscreenedLayers > 1: return None
         rows = []
         for i in range(self.NscreenedLayers):
-            head_in_aquifer = self.modelParent.head( self.pylayers[i]+1, self.xc, self.yc )
+            head_in_aquifer = self.modelParent.head( self.pylayers[i]+1, self.xcp, self.ycp )
             if head_in_aquifer >= self.bottomelev:  # There is a hydraulic connection
                 if self.connected:
                     return None
