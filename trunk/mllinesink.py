@@ -35,7 +35,7 @@ class LineSink(Element):
         self.z1 = complex(self.x1,self.y1); self.z2 = complex(self.x2,self.y2);
         self.xc = 0.5*(self.x1+self.x2); self.yc = 0.5*(self.y1+self.y2)
         self.L = abs(self.z2-self.z1); self.Lover4pi = self.L/(4.0*pi); self.Lover2 = self.L / 2.0
-        if self.aquiferParentFixed == None:
+        if self.aquiferParentFixed is None:
             self.aquiferParent = self.modelParent.aq.findAquiferData(self.xc,self.yc)  # Determined at xc,yc
         else:
             self.aquiferParent = self.aquiferParentFixed
@@ -500,7 +500,7 @@ class HeadLineSink(LineSink):
         print 'HeadLineSink from '+str(self.xy1)+' to '+str(self.xy2)
         for i in range(self.NscreenedLayers):
             print 'Layer '+str(self.layers[i])+' Specified head: '+str(self.head)+\
-                  ' Computed head: '+str(self.modelParent.head(self.layers[i],self.xc,self.yc))+\
+                  ' Computed head: '+str(self.modelParent.headVector(self.xc,self.yc)[self.pylayers[i]])+\
                   ' Strength: '+str(self.parameters[i,0])
         return None
 
@@ -818,10 +818,10 @@ class LineSinkDitchNew(Element):
             assert len(layers) == self.NLS, "TimML Input error: layers must be length of numer of line-sinks"
             self.layers = array(layers,'i')
         else:
-            self.layers = layers * ones( self.NLS, i )
-        print 'xoffset ',xoffset
+            self.layers = layers * ones( self.NLS, 'i' )
+        #print 'xoffset ',xoffset
         for i in range(self.NLS):
-            ls = LineSink(modelParent,xylist[i][0]-xoffset,xylist[i][1],xylist[i+1][0]+xoffset,xylist[i+1][1],0,[layers[i]],aquiferParentFixed,0)
+            ls = LineSink(modelParent,xylist[i][0]-xoffset,xylist[i][1],xylist[i+1][0]+xoffset,xylist[i+1][1],0,[self.layers[i]],aquiferParentFixed,0)
             self.lsList = self.lsList + [ls]
         self.Q = float(Q)
         self.res = float(res)
@@ -836,7 +836,7 @@ class LineSinkDitchNew(Element):
 ##            self.width = array(width,'d')
 ##        else:
 ##            self.width = width * ones( self.NLS )        
-        if aquiferParentFixed == None:
+        if aquiferParentFixed is None:
             self.aquiferParent = self.modelParent.aq.findAquiferData(xylist[0][0],xylist[0][1])  # Determined at first node
         else:
             self.aquiferParent = aquiferParentFixed
@@ -898,8 +898,14 @@ class LineSinkDitchNew(Element):
         rows=[]
         for i in range(self.NLS-1):
             row = zeros(0,'d')
-            aq1 = self.lsList[i+1].aquiferParent; pylayer1 = self.pylayers[i+1]; T1 = aq1.T[pylayer1]; 
-            aq0 = self.lsList[i].aquiferParent; pylayer0 = self.pylayers[i]; T0 = aq0.T[pylayer0]
+            aq1 = self.lsList[i+1].aquiferParent
+	    pylayer1 = self.pylayers[i+1]
+	    if aq1.fakesemi: pylayer1 += 1
+	    T1 = aq1.T[pylayer1]; 
+            aq0 = self.lsList[i].aquiferParent
+	    pylayer0 = self.pylayers[i]
+	    if aq0.fakesemi: pylayer0 += 1
+	    T0 = aq0.T[pylayer0]
             for e in elementList:
                 rowpart = e.getMatrixCoefficients( aq1,pylayer1,self.xcp[i+1],self.ycp[i+1],\
                     lambda el,aq,pylayer,x,y: T0*el.potentialInfluenceInLayer(aq,pylayer,x,y) - \
@@ -908,9 +914,9 @@ class LineSinkDitchNew(Element):
                     rowpart[i+1] = rowpart[i+1] - T0 * T1 * self.res / self.width
                     rowpart[i] = rowpart[i] + T0 * T1 * self.res / self.width
                 row = hstack(( row, rowpart ))
-            delpot = T0 * T1 * ( self.delhead[i] - aq1.hstar + aq0.hstar )
-            delpotold = T0 * self.modelParent.potentialInLayer(self.aquiferParent,pylayer1,self.xcp[i+1],self.ycp[i+1]) -\
-                        T1 * self.modelParent.potentialInLayer(self.aquiferParent,pylayer0,self.xcp[i],self.ycp[i])
+            delpot = T0 * T1 * self.delhead[i]
+            delpotold = T0 * self.modelParent.potentialInLayer(aq1,pylayer1,self.xcp[i+1],self.ycp[i+1]) -\
+                        T1 * self.modelParent.potentialInLayer(aq0,pylayer0,self.xcp[i],self.ycp[i])
             delsigma = ( self.parameters[i+1,0] - self.parameters[i,0] ) * T0 * T1 * self.res / self.width
             row = hstack(( row, delpot - delpotold + delsigma ))
             rows = rows + [row.tolist()]
