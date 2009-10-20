@@ -5,6 +5,7 @@ the GNU LPGL. See the TimML.py file for more details.
 (c) Mark Bakker, 2002-2007
 '''
 
+from sys import stdout
 from numpy import *
 import numpy.linalg as linalg
 from mlaquifer import *
@@ -475,6 +476,7 @@ class Model:
             Nel = len(self.elementList)
             print 'Number of elements: ',Nel
             print 'Percent progress: ',
+	    stdout.flush()
             imilestone = (Nel-1)*arange(0,11,1,'i')/10
             icount = 0; iprog = 0
             eq_list = []
@@ -485,6 +487,7 @@ class Model:
                 matrix.extend( rows )
                 if icount == imilestone[iprog]:
                     print int(10.0*iprog),
+		    stdout.flush()
                     iprog = iprog + 1
                 icount = icount + 1
             print ' ' # Just to end the printing in a row

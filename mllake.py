@@ -66,12 +66,24 @@ class Lake:
         self.inhomList.append( PolygonInhom(self.ml,len(k),k,zb,zt,c,xylist,n,nll,True) )
         self.elementList.extend( MakeInhomPolySide(self.ml, xylist, self.order, closed = True) )
         # Put HeadLineSink along first straight part of boundary (even if broken-up in multiple segments)
+        xylist.append( xylist[0] ) # add first point again at the end
+        istart = 0
         x0,y0 = xylist[0]; x1,y1 = xylist[1]; an0 = arctan2((y1-y0),(x1-x0))
-        for i in range(1,len(xylist)-1):
+        for i in range(istart,len(xylist)-1):
             x0,y0 = xylist[i]; x1,y1 = xylist[i+1]; an = arctan2((y1-y0),(x1-x0))
-            if an != an0: break
-        x0,y0 = xylist[0]; x1,y1 = xylist[i]
+            if an != an0:
+                x0,y0 = xylist[istart]; x1,y1 = xylist[i]
+                self.elementList.append( HeadLineSink(self.ml,x0,y0,x1,y1,self.hlake,[1],self.inhomList[-1]) )
+                istart = i
+                an0 = an
+        # Add HeadLineSink along last segment
+        x0,y0 = xylist[istart]; x1,y1 = xylist[i+1]
         self.elementList.append( HeadLineSink(self.ml,x0,y0,x1,y1,self.hlake,[1],self.inhomList[-1]) )
+        ## Place head line-sink exactly inside. Nicer would be to put the control point just inside, but that is not an option in the current code
+        #z0 = x0 + 1j * y0; z1 = x1 + 1j * y1
+        #Z0 = complex( -1+1e-6, 1e-6 ); Z1 = complex( 1-1e-6, 1e-6 )
+        #z0new = 0.5 * Z0 * (z1-z0) + 0.5*(z0+z1); z1new = 0.5 * Z1 * (z1-z0) + 0.5*(z0+z1)
+        #x0 = z0new.real; y0 = z0new.imag; x1 = z1new.real; y1 = z1new.imag        
         assert self.elementList[0].aqout == self.ml.aq, 'TimML Input Error: Outside of Lake must be background aquifer of model'
 
     def check_percolate(self,hmin):
