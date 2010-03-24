@@ -23,7 +23,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307,
 USA, or go to http://www.gnu.org/copyleft/lesser.html
 '''
 
-print 'TimML version 3.3.1'
+print 'TimML version 3.4.0'
 # Import all other files
 from ml import *
 from mlaquifer import *
@@ -45,6 +45,6 @@ from mllinesinkgeneral import *
 from mllinedoubletimp import *
 from mllake import *
 #from TimMLmpl import *
-#from mlpylabutil import *
+from mlpylabutil import *
 
 
