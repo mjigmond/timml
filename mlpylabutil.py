@@ -4,9 +4,9 @@ from matplotlib.collections import LineCollection
 from numpy import *
 from mltrace import *
 
-def pycontour( ml, xmin, xmax, nx, ymin, ymax, ny, Naquifers=1, levels = 10, color = None, \
+def timcontour( ml, xmin, xmax, nx, ymin, ymax, ny, Naquifers=1, levels = 10, color = None, \
                width = 0.5, style = '-', separate = 0, layout = 1, newfig = 1, labels = 0, labelfmt = '%1.2f', xsec = 0,
-               returnheads = 0, returncontours = 0, fill = 0, size=None, pathline = False):
+               returnheads = 0, returncontours = 0, fillcontour = 0, size=None):
     '''Contours head with pylab'''
     rcParams['contour.negative_linestyle']='solid'
 
@@ -70,7 +70,7 @@ def pycontour( ml, xmin, xmax, nx, ymin, ymax, ny, Naquifers=1, levels = 10, col
         for k in range(len(aquiferRange)):
             hmin = amin(head[k,:,:].flat)
             hmax = amax(head[k,:,:].flat)
-            print 'Layer ',aquiferRange[k],' min,max: ',hmin,', ',hmax,'. Enter: hmin,hmax,step '
+            print 'Layer ',aquiferRange[k]+1,' min,max: ',hmin,', ',hmax,'. Enter: hmin,hmax,step '
             h1,h2,delh = input()
             levels = levels + [ arange(h1,h2+1e-8,delh) ]
     elif type(levels) is int:
@@ -85,30 +85,29 @@ def pycontour( ml, xmin, xmax, nx, ymin, ymax, ny, Naquifers=1, levels = 10, col
             figure( figsize=(xsize,ysize) )
             axis('scaled')
             axis( [xmin,xmax,ymin,ymax] )
-            if layout: pylayout(ml)
-            if fill:
-                contourf( xg, yg, head[k,:,:], levels[k], colors = color[k], linewidths = width )
+            if layout: timlayout(ml,overlay=True,autoscale=False)
+            if fillcontour:
+                contourf( xg, yg, head[k,:,:], levels[k], colors = color[k] )
             else:
                 contour( xg, yg, head[k,:,:], levels[k], colors = color[k], linewidths = width )
     else:
     # Drawing all heads on one figure
         if newfig:
             fig = figure( figsize=size )
-##            if xsec:
-##                ax1 = pylab.axes([.1,.38,.8,.55])
-##                pylab.setp( ax1.get_xticklabels(), visible=False)
-##            else:
-##                ax = subplot(111)
-##                ax.axis((xmin,xmax,ymin,ymax))
-##                ax.axis('scaled')
-        ax = subplot(111)
-        ax.axis('scaled')
-        ax.axis((xmin,xmax,ymin,ymax))
-        draw()
-        if layout: pylayout(ml)
+            if xsec:
+                ax1 = axes([.1,.38,.8,.55])
+                setp( ax1.get_xticklabels(), visible=False)
+                ax1.set_aspect(aspect='equal')
+            else:
+                ax = subplot(111)
+                #ax.axis('scaled')
+                draw()
+        else:
+            ax = gca()
+        if layout: timlayout(ml,overlay=True,autoscale=False)
         for k in range(len(aquiferRange)):
-            if fill:
-                contourset = contourf( xg, yg, head[k,:,:], levels[k], linewidths = width, fmt=labelfmt )
+            if fillcontour:
+                contourset = contourf( xg, yg, head[k,:,:], levels[k], fmt=labelfmt )
             else:
                 contourset = contour( xg, yg, head[k,:,:], levels[k], colors = color[k], linewidths = width, fmt=labelfmt )
                 if style[k] != '-':
@@ -125,155 +124,162 @@ def pycontour( ml, xmin, xmax, nx, ymin, ymax, ny, Naquifers=1, levels = 10, col
             if labels:
                 clabel( contourset, inline = 1, fmt = labelfmt ) 
         if xsec:
-            #ax1.axis('equal') # Changed from scaled to equal to get xsec to work
-            #ax1.axis([xmin,xmax,ymin,ymax])
-            #ax1.draw()
-            print 'shared axis broken'
-##            pos = ax1.get_position()
-##            ax2 = pylab.axes([pos.x0,.1,pos.width,.25],sharex=ax1)
-            #ax1.axis([xmin,xmax,ymin,ymax])
+            ax2 = axes([.1,.1,.8,.25],sharex=ax1)
+            x1,x2 = ax2.get_xlim()
+            for i in range(ml.aq.Naquifers-1):
+                fill( [x1,x2,x2,x1], [ml.aq.zt[i+1],ml.aq.zt[i+1],ml.aq.zb[i],ml.aq.zb[i]], fc=[.8,.8,.8],ec=[.8,.8,.8])
+            ax2.set_ylim(ml.aq.zb[-1],ml.aq.zt[0])
+        else:
+            ax.set_aspect(aspect='equal',adjustable='box')
+            ax.set_xlim(xmin,xmax)
+            ax.set_ylim(ymin,ymax)
     draw()
-    if pathline:
-        ip = InteractivePathline(ml)
-        gcf().canvas.mpl_connect('button_press_event',ip.press)       
+    if not hasattr(ml,'trace'): ml.trace = TraceSettings(ml)
+    ml.trace.xsec = xsec     
     if returnheads and returncontours:
         return head,contourset
     elif returnheads:
         return xg,yg,head
     elif returncontours:
         return contourset
+    
+def timcontourlocal(ml, nx=50, ny=50, Naquifers=1, levels = 10, color = None, \
+               width = 0.5, style = '-', newfig = 0, labels = 0, labelfmt = '%1.2f', fillcontour = 0, xsec = False):
+    ax = gcf().axes[0]
+    x1,x2 = ax.get_xlim()
+    y1,y2 = ax.get_ylim()
+    if xsec & (not newfig):
+        print 'Adding cross-section can only be done in new figure'
+        newfig = 1
+    layout = 0
+    if newfig: layout = 1
+    timcontour( ml, x1, x2, nx, y1, y2, ny, Naquifers=Naquifers, levels=levels, color=color, \
+               width=width, style=style, separate=0, layout=layout, newfig=newfig, labels=labels, labelfmt=labelfmt, xsec=xsec,
+               returnheads=0, returncontours=0, fillcontour=fillcontour, size=None)
+    
+class TraceSettings:
+    def __init__(self,ml):
+        self.forward = True
+        self.tmax = 1e20
+        self.zbegin = [0.5*(ml.aq.zb[0]+ml.aq.zt[0])]
+        self.xsec = False
+    
+def setTrace(ml,forward=None,tmax=None,zbegin=None):
+    if not hasattr(ml,'trace'): ml.trace = TraceSettings()
+    if not forward is None:
+        ml.trace.forward = forward
+    if not tmax is None:
+        ml.trace.tmax = tmax
+    if not zbegin is None:
+        if not iterable(zbegin): zbegin = [zbegin]
+        ml.trace.zbegin = zbegin
+        
+def traceOn(ml,forward=None,tmax=None,zbegin=None):
+    ip = InteractivePathline(ml)
+    gcf().canvas.mpl_connect('button_press_event',ip.press)     
+    setTrace(ml,forward,tmax,zbegin)
 
 class InteractivePathline:
     def __init__(self,ml):
         self.ml = ml
     def press(self,event):
         if event.inaxes is None: return
-        a = gca().axis()
-        step = (a[1] - a[0]) / 100.0
-        aq = self.ml.aq.findAquiferData(event.xdata,event.ydata)
-        pytracelines( self.ml, [event.xdata], [event.ydata], [0.5*(aq.zt[0]+aq.zb[0])], step, Nmax=200 )
+        if event.button != 3: return
+        ax = gcf().axes[0]
+        x1,x2,y1,y2 = ax.axis()
+        step = (x2 - x1) / 100.0
+        if not self.ml.trace.forward: step = -step
+        tmax = self.ml.trace.tmax
+        zbegin = self.ml.trace.zbegin
+        xsec = self.ml.trace.xsec
+        Npoints = len(zbegin)
+        timtracelines( self.ml, Npoints*[event.xdata], Npoints*[event.ydata], zbegin, step, tmax=tmax, Nmax=200, window=(x1,y1,x2,y2), xsec=xsec )
    
 
-def pylayout( ml, color = 'k', overlay = 1, width = 0.5, style = 1 ):
-    if overlay:
-        ioff()
-        ax = axis()
-        p = []
-        for e in ml.elementList:
-            a = e.layout()
-            nterms = len(a)
-            for i in range(0,nterms,3):
-                if a[i] > 1:
-                    if e.aquiferParent.fakesemi and e.pylayers[0] == 0: # In top layer (the fake layer) of fake semi
-                        plot( a[i+1], a[i+2], color = [.8,.8,.8] )
-                    else:
-                        if style == 1:
-                            plot( a[i+1], a[i+2], color, linewidth = width )
-                        elif style == 2:
-                            fill( a[i+1], a[i+2], facecolor = color, edgecolor = color )
-                elif a[i] == 1:
-                    plot( a[i+1], a[i+2], color+'o', markersize=3 ) 
-##                    p = p + [a[i+1], a[i+2], color ]
-##        eval(str('plot'+str(tuple(p))))
-        intensity = linspace(0.7,0.9,len(ml.aq.inhomList))
-#        for inhom in ml.aq.inhomList:
-#            corners = inhom.layout()
-#            fill( corners[0], corners[1], facecolor = [.8,.8,.8], edgecolor = [.8,.8,.8])
-        for (col,inhom) in zip(intensity,ml.aq.inhomList):
-            corners = inhom.layout()
-            fill( corners[0], corners[1], facecolor = cm.bone(col), edgecolor = [.8,.8,.8])
-        axis(ax)
+def timlayout( ml, color = 'k', overlay = 0, width = 0.5, style = 1, autoscale = True ):
+    if not overlay:
+        figure(figsize=(8,8))
+        subplot(111)
+    ax = gca()
+    winx = ax.get_xlim()
+    winy = ax.get_ylim()
+    for e in ml.elementList:
+        a = e.layout()
+        nterms = len(a)
+        for i in range(0,nterms,3):
+            if a[i] > 1:
+                if e.aquiferParent.fakesemi and e.pylayers[0] == 0: # In top layer (the fake layer) of fake semi
+                    ax.plot( a[i+1], a[i+2], color = [.8,.8,.8] )
+                else:
+                    if style == 1:
+                        ax.plot( a[i+1], a[i+2], color, linewidth = width )
+                    elif style == 2:
+                        ax.fill( a[i+1], a[i+2], facecolor = color, edgecolor = color )
+            elif a[i] == 1:
+                ax.plot( a[i+1], a[i+2], color+'o', markersize=3 ) 
+    intensity = linspace(0.7,0.9,len(ml.aq.inhomList))
+    for (col,inhom) in zip(intensity,ml.aq.inhomList):
+        corners = inhom.layout()
+        ax.fill( corners[0], corners[1], facecolor = cm.bone(col), edgecolor = [.8,.8,.8])
+    if not autoscale:
+        ax.set_xlim(winx)
+        ax.set_ylim(winy)
         draw()
-        ion()
-    else:
-        for e in ml.elementList:
-            a = e.layout()
-            nterms = len(a)
-            for i in range(0,nterms,3):
-                if a[i] > 0:
-                    plot( a[i+1], a[i+2], color )
-        intensity = linspace(0.7,0.9,len(ml.aq.inhomList))
-        if len(ml.aq.inhomList)==1: intensity = [intensity] # silly, as linspace should always return list
-        for (col,inhom) in zip(intensity,ml.aq.inhomList):
-            corners = inhom.layout()
-            fill( corners[0], corners[1], facecolor = cm.bone(col), edgecolor = [.8,.8,.8])
+    if not overlay:
+        axis('scaled')
 
 
-def pytracelines(ml,xlist,ylist,zlist,step,twoD=1,tmax=1e30,Nmax=200,labfrac=2.0,\
-                    Hfrac=5.0,window=[-1e30,-1e30,1e30,1e30],overlay=1,color=['r','g','k'],width=0.5,style='-',xsec=0):
+def timtracelines(ml,xlist,ylist,zlist,step,twoD=1,tmax=1e30,Nmax=200,labfrac=2.0,\
+                    Hfrac=5.0,window=[-1e30,-1e30,1e30,1e30],overlay=1,color=None,width=0.5,style='-',xsec=0,layout=True):
     '''Routine for plotting multiple tracelines using pylab'''
+    # Set colors
     if type( color ) is str:
         color = ml.aq.Naquifers * [color]
     elif type( color ) is list:
         Ncolor = len(color)      
         if Ncolor < ml.aq.Naquifers:
             color = color + ml.aq.Naquifers * [ color[0] ]
-    elif type( color ) is type(None):
+    elif color is None:
         color = ['b','r','g','m','c']
-        if len(xlist) > 5:
-            color = int(ceil(ml.aq.Naquifers/5.)) * [color]
+        if ml.aq.Naquifers > 5:
+            color = int(ceil(ml.aq.Naquifers/5.)) * color
+    # Set figure
     if not overlay:
         fig = figure()
-        subplot(111)
+        ax1 = subplot(111)
     if overlay:
         fig = gcf()
-        fig.sca( fig.axes[0] )
-        ax = axis()
-    ioff()
+        ax1 = fig.axes[0]
+        if xsec:
+            ax2 = fig.axes[1]
+    xmin,xmax = ax1.get_xlim()
+    ymin,ymax = ax1.get_ylim()
     for i in range(len(xlist)):
         x = xlist[i]; y = ylist[i]; z = zlist[i]
         [xyz,t,stop,pylayers] = traceline(ml,x,y,z,step,tmax,Nmax,labfrac=labfrac,Hfrac=Hfrac,window=window)
-        # plot plane view
+        pylayers = array(pylayers)
         if xsec:
-            fig = gcf()
-            fig.sca( fig.axes[0] )
-#        pylayers = ml.inWhichPyLayers( xyz[:,0], xyz[:,1], xyz[:,2] )
-        istart = 0
-        Nsteps = len(xyz[:,0]) - 1
-        for j in range(len(color)):
-            color[j] = colorConverter.to_rgba( color[j] )
-        trace_color = []
-        for j in range(len(xyz)-1):  # Number of segments one less than number of points
-            trace_color.append( color[ pylayers[j] ] )
-        if twoD == 1:
-            points = zip( xyz[:,0], xyz[:,1] )
-        elif twoD == 2:
-            points = zip( xyz[:,0], xyz[:,2] )
-        segments = zip( points[:-1], points[1:] )
-        LC = LineCollection(segments, colors = trace_color)
-        LC.set_linewidth(width)
-        fig.axes[0].add_collection(LC)
-        if xsec:
-            points = zip( xyz[:,0], xyz[:,2] )
-            segments = zip( points[:-1], points[1:] )
-            LC = LineCollection(segments, colors = trace_color)
-            LC.set_linewidth(width)
-            fig.axes[1].add_collection(LC)
-#        for j in range( 1,len(xyz[:,0]) ):
-#            if pylayers[j] != pylayers[istart]:
-#                plot( xyz[istart:j+1,0], xyz[istart:j+1,1], style+color[pylayers[istart]], linewidth=width)
-#                if xsec:
-#                    fig.sca( fig.axes[1] )
-#                    plot( xyz[istart:j+1,0], xyz[istart:j+1,2], style+color[pylayers[istart]], linewidth=width)
-#                    fig.sca( fig.axes[0] )
-#                istart = j
-#            elif j == Nsteps:
-#                plot( xyz[istart:,0], xyz[istart:,1], style+color[pylayers[istart]], linewidth=width)
-#                if xsec:
-#                    fig.sca( fig.axes[1] )
-#                    plot( xyz[istart:,0], xyz[istart:,2], style+color[pylayers[istart]], linewidth=width)
-#                    fig.sca( fig.axes[0] )
-    if overlay:
-        fig = gcf()
-        fig.sca( fig.axes[0] )
-        axis(ax)
+            ax2.plot(xyz[:,0],xyz[:,2],color=[.7,.7,.7])
+        for j in range(pylayers.min(),pylayers.max()+1):
+            ax1.plot( where(pylayers==j,xyz[:,0],nan), where(pylayers==j,xyz[:,1],nan), color[j])
+            if xsec:
+                ax2.plot( where(pylayers==j,xyz[:,0],nan), where(pylayers==j,xyz[:,2],nan), color[j])
+    ax1.set_xlim(xmin,xmax)
+    ax1.set_ylim(ymin,ymax)
     if xsec:
-        fig.axes[1].set_ylim(ml.aq.zb[-1],ml.aq.zt[0])
+        ax2.set_ylim(ml.aq.zb[-1],ml.aq.zt[0])
+        ax2.set_xlim(xmin,xmax)
     draw()
-    ion()
     return
 
-def pyvertcontour( ml, x1, y1, x2, y2, nx, zmin, zmax, nz, levels = 10, color = None, \
+def capturezone( ml, w, N, z, step, tmax, xsec=False ):
+    xstart = w.xw + 1.01*w.rw * cos( arange(0.01,2*pi,2*pi/N) )
+    ystart = w.yw + 1.01*w.rw * sin( arange(0.01,2*pi,2*pi/N) )
+    zstart = z * ones(len(xstart))
+    timtracelines(ml,xstart,ystart,zstart,step,tmax=tmax,xsec=xsec)
+    
+
+def timvertcontour( ml, x1, y1, x2, y2, nx, zmin, zmax, nz, levels = 10, color = None, \
                width = 0.5, style = '-', newfig = 1, labels = 0, labelfmt = '%1.3f',
                returnheads = 0, returncontours = 0, fill = 0, size=None):
     '''Contours head with pylab'''
