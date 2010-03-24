@@ -475,6 +475,82 @@ subroutine potlaplsho(x,y,x1in,y1in,x2in,y2in,order,rv)
    
 end subroutine potlaplsho
 
+subroutine omegalaplsho(x,y,x1in,y1in,x2in,y2in,order,rv,rvpsi)
+
+    ! Input:
+    !   x,y: Point where potential is computed
+    !   x1in,y1in: Begin point of line-sink
+    !   x2in,y2in: End point of line-sink
+    !   order: Order of the line-sink
+    !   rv(order+1): Array to store return value
+    ! Output:
+    !   rv(order+1): Return values
+
+    implicit none
+
+    ! Input / Output
+    real*8, intent(in) :: x,y,x1in,y1in,x2in,y2in
+    integer, intent(in) :: order
+    real*8,intent(inout) :: rv(*), rvpsi
+
+    ! Locals
+
+    real*8, parameter :: rONE=1.d0, rTWO=2.d0, rFOUR=4.d0
+    real*8, parameter :: pi=3.1415926535897931d0, tiny = 1.d-8
+    complex*16, parameter :: cZERO=(0.d0,0.d0), cTWO = (2.d0,0.d0)
+
+    integer :: n, m, i
+    real*8 :: Lin
+    complex*16 :: zin, z1in, z2in, z, zplus1, zmin1, zpower
+    complex*16 :: clog1, clog2, clog3
+    complex*16, dimension(order+1) :: comega
+    complex*16, dimension(order+2) :: qm, qmnew
+
+    zin = cmplx(x,y,8); z1in = cmplx(x1in,y1in,8); z2in = cmplx(x2in,y2in,8)
+    Lin = abs(z2in-z1in)
+    z = ( rTWO*zin - (z1in + z2in) ) / (z2in - z1in)
+    zplus1 = z + rONE; zmin1 = z - rONE
+
+    ! If at cornerpoint, move slightly
+    if  (abs(zplus1) < tiny*rTWO/Lin) zplus1 = zplus1 + tiny
+    if  (abs(zmin1) < tiny*rTWO/Lin) zmin1 = zmin1 + tiny
+
+    ! Laplace linesink
+
+    !qm(1) = cZERO
+    !do m=1,order+1
+    !	qm(m+1) = cZERO
+    !	do n=1,(m+1)/2
+    !	    qm(m+1) = qm(m+1) + z**(m-rTWO*float(n)+rONE) / (rTWO*float(n) - rONE)
+    !	end do
+    !end do
+    !qm = rTWO * qm
+    !write(*,*) 'qm ',qm
+    
+    qmnew(1) = cZERO
+    qmnew(2) = cTWO
+    do m=3,order+1,2
+	qmnew(m+1) = qmnew(m-1) * z * z + cTWO / float(m)
+    end do
+    do m=2,order+1,2
+	qmnew(m+1) = qmnew(m) * z 
+    end do
+    !write(*,*) 'qmnew ',qmnew
+
+    clog1 = log( (zmin1) / (zplus1) )
+    clog2 = log(zmin1)
+    clog3 = log(zplus1)
+
+    zpower = rONE
+    do i = 1, order+1
+        zpower = zpower * z
+        comega(i) = -Lin/(rFOUR*pi*i) * ( zpower * clog1 + qmnew(i+1) - clog2 + (-rONE)**i * clog3 )
+        rv(i) = real(comega(i))
+        rvpsi(i) = aimag(comega(i))
+    end do
+   
+end subroutine omegalaplsho
+
 subroutine dislaplsho(x,y,x1in,y1in,x2in,y2in,order,rvx,rvy)
 
     ! Input:
