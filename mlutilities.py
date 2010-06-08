@@ -267,3 +267,7 @@ def NumLap(f,x,y,xstep):
     numlap = (f1 + f2 + f3 + f4 - 4.0 * f0) / (xstep**2)
     return numlap
 
+def integratedLeftDischarge(ml,xy,filename):
+    Q = ml.integratedLeftDischarge(xy)
+    savetxt(filename,Q)
+

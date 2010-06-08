@@ -12,6 +12,7 @@ from mlaquifer import *
 from mlelement import *
 #from TimMLgui import setActiveModel
 from mltrace import *
+from scipy.integrate import romberg
 
 class Model:
     '''Model class; all parameters from top down as lists
@@ -147,6 +148,27 @@ class Model:
         [Qx,Qy] = self.dischargeCollection(x,y,aq)
         Qr = Qx * cos(theta) + Qy * sin(theta);
         return Qr
+    def integratedLeftDischarge(self,xylist,offset=1e-6,tol=1e-3,divmax=10):
+        rv = []
+        N = len(xylist) - 1
+        X1 = -1.0 + offset
+        X2 = 1.0 - offset
+        for i in range(N):
+            Qn = []
+            z1 = xylist[i][0] + xylist[i][1]*1j
+            z2 = xylist[i+1][0] + xylist[i+1][1]*1j
+            L = abs(z2-z1)
+            theta = arctan2( z2.imag-z1.imag, z2.real-z1.real ) + pi/2
+            aq = self.aq.findAquiferData(z1.real,z1.imag)
+            for n in range(aq.Naquifers):
+                def func(X):
+                    Z = X + offset*1j
+                    z = 0.5 * ( Z * (z2-z1) + (z1+z2) )
+                    x,y = z.real,z.imag
+                    return self.dischargeNormVector(x,y,theta)[n]
+                Qn.append(romberg(func,X1,X2,tol=tol,divmax=divmax)*L/2)
+            rv.append(array(Qn))
+        return array(rv)
     def dischargeNormVectorOld(self,x,y,theta,aq=None):
         '''Returns normal dischargevector in each layer in direction theta '''
         if aq == None: aq = self.aq.findAquiferData(x,y)

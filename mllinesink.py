@@ -273,7 +273,9 @@ class LineSink(Element):
                                 xnew = znew.real; ynew = znew.imag
                                 horstepold = sqrt( (xyz1[0]-xyz2[0])**2 + (xyz1[1]-xyz2[1])**2 )
                                 horstepnew = sqrt( (xyz1[0]-xnew)**2 + (xyz1[1]-ynew)**2 )
-                                xyznew = array([xnew,ynew,self.aquiferParent.zt[pyLayer]]) 
+                                #xyznew = array([xnew,ynew,self.aquiferParent.zt[pyLayer]]) # Changed so that elevation at exit is correct
+                                znew = xyz1[2] + horstepnew / horstepold * ( xyz2[2] - xyz1[2])
+                                xyznew = array([xnew,ynew,znew])
                                 stop = 1
                         else: # Line-sink puts water in (should jump streamline down)
                             flowbelow = (zvertnew - self.aquiferParent.zb[pyLayer]) / self.aquiferParent.H[pyLayer] * abs(disnorm1)
