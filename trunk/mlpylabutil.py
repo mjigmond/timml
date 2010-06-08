@@ -183,7 +183,9 @@ class InteractivePathline:
     def __init__(self,ml):
         self.ml = ml
     def press(self,event):
+        print 'Hello'
         if event.inaxes is None: return
+        print 'event.button ',event.button
         if event.button != 3: return
         ax = gcf().axes[0]
         x1,x2,y1,y2 = ax.axis()
