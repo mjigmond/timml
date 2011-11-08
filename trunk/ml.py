@@ -446,7 +446,7 @@ class Model:
         maxIter: Maximum number of iterations. If reached before convergence a message is written to the screen
         storematrix: Logical to to indicate whether the matrix should remain stored. Only useful during development
         '''
-        self.matrix = 0; self.rhs = 0; self.xsol = 0; self.eqcumlist = 0  # If not created (no unknowns) they need to exist to be deleted
+        self.matrix = 0; self.rhs = 0; self.xsol = 0; self.eqlist = 0; self.eqcumlist = 0  # If not created (no unknowns) they need to exist to be deleted
         print 'Starting solve'
         newsolution = self.solveNonLinear( 1, reInitializeAllElements )
         lakechange = False  # Need to start with false in case there are no lakes
@@ -474,7 +474,7 @@ class Model:
             u,s,vh = linalg.svd(self.matrix)
             print 'Condition number: ',s[0]/s[-1]
         if not storematrix:
-            del self.matrix; del self.rhs; del self.xsol; del self.eqcumlist
+            del self.matrix; del self.rhs; del self.xsol; del self.eqlist; del self.eqcumlist
         print 'Solution complete'
         return
         
@@ -514,6 +514,7 @@ class Model:
                 icount = icount + 1
             print ' ' # Just to end the printing in a row
             eqcumlist = cumsum(eq_list)
+            self.eqlist = eq_list
             self.eqcumlist = eqcumlist - 1
             #print 'matrix ',matrix
             matrix = array(matrix)
