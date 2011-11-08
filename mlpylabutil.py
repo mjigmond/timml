@@ -6,7 +6,7 @@ from mltrace import *
 
 def timcontour( ml, xmin, xmax, nx, ymin, ymax, ny, Naquifers=1, levels = 10, color = None, \
                width = 0.5, style = '-', separate = 0, layout = 1, newfig = 1, labels = 0, labelfmt = '%1.2f', xsec = 0,
-               returnheads = 0, returncontours = 0, fillcontour = 0, size=None):
+               returnheads = 0, returncontours = 0, fillcontour = 0, size=None, mayavi=False):
     '''Contours head with pylab'''
     rcParams['contour.negative_linestyle']='solid'
 
@@ -24,12 +24,18 @@ def timcontour( ml, xmin, xmax, nx, ymin, ymax, ny, Naquifers=1, levels = 10, co
             aquiferRange = range(ml.aq.Naquifers)
     Naquifers = len(aquiferRange)
 
-    xg,yg = meshgrid( linspace( xmin, xmax, nx ), linspace( ymin, ymax, ny ) ) 
+    if mayavi:
+        xg,yg = mgrid[xmin:xmax:nx*1j, ymin:ymax:ny*1j]
+    else:
+        xg,yg = meshgrid( linspace( xmin, xmax, nx ), linspace( ymin, ymax, ny ) )
+        
     print 'grid of '+str((nx,ny))+'. gridding in progress. hit ctrl-c to abort'
+    
+    Nrow,Ncol = shape(xg)
 
     head = zeros( ( Naquifers, ny, nx ), 'd' )
-    for irow in range(ny):
-        for jcol in range(nx):
+    for irow in range(Nrow):
+        for jcol in range(Ncol):
             # Figure out aquifer first, so we can process fake aquifers; no repeated effort as aq is passed to headVector
             
             aq = ml.aq.findAquiferData(xg[irow,jcol], yg[irow,jcol])

@@ -59,13 +59,13 @@ subroutine potbeslsho(x,y,x1in,y1in,x2in,y2in,Naquifers,lambdain,order,rv)
 
     ! First lambda is expected to be zero, and is not used
     if ( Naquifers > 1 ) then
-	lambda(1:Naquifers-1) = lambdain(2:Naquifers)
+        lambda(1:Naquifers-1) = lambdain(2:Naquifers)
     end if
 
     ! Precompute binomials
     do n=0,Nterms
-	do m=0,Nterms
-	    rbinom(n,m) = product(rRange(m+1:n)) / product(rRange(1:n-m))
+        do m=0,Nterms
+            rbinom(n,m) = product(rRange(m+1:n)) / product(rRange(1:n-m))
         end do
     end do
 
@@ -83,7 +83,7 @@ subroutine potbeslsho(x,y,x1in,y1in,x2in,y2in,Naquifers,lambdain,order,rv)
     power = order + 1 ;
     pcor = cmplx(0.d0,0.d0) ;
     do n=1,(power+1)/2
-	pcor = pcor + z**(power-2*n+1) / (2*n-1) ;
+        pcor = pcor + z**(power-2*n+1) / (2*n-1) ;
     end do
     pcor = rTWO * pcor ;
 
@@ -96,17 +96,17 @@ subroutine potbeslsho(x,y,x1in,y1in,x2in,y2in,Naquifers,lambdain,order,rv)
     do i=1,Naquifers-1
         pot = 0.0
 
-	! Check whether entire linesink is outside radius of convergence
-	! Outside if |z-zc|>L/2+7lab, and thus |Z|>1+7lab*2/L, or |zeta|>1/biglab+7 (zeta is called z here)
-	biglab = rTWO * lambda(i) / Lin
-	z = ( rTWO*zin - (z1in + z2in) ) / (z2in - z1in) / biglab
+        ! Check whether entire linesink is outside radius of convergence
+        ! Outside if |z-zc|>L/2+7lab, and thus |Z|>1+7lab*2/L, or |zeta|>1/biglab+7 (zeta is called z here)
+        biglab = rTWO * lambda(i) / Lin
+        z = ( rTWO*zin - (z1in + z2in) ) / (z2in - z1in) / biglab
 
-	if ( abs(z) < (Rconv + rONE/biglab) ) then
-	    call IntegralF(zin,z1in,z2in,Lin,lambda(i),order,Nterms,ac,bc,Rconv,rbinom,pot)
-	    rv(i+1) = -Lin/rTWO * pot
-	else
-	    rv(i+1) = rZERO
-	end if
+        if ( abs(z) < (Rconv + rONE/biglab) ) then
+            call IntegralF(zin,z1in,z2in,Lin,lambda(i),order,Nterms,ac,bc,Rconv,rbinom,pot)
+            rv(i+1) = -Lin/rTWO * pot
+        else
+            rv(i+1) = rZERO
+        end if
 
     end do
 
@@ -166,13 +166,13 @@ subroutine disbeslsho(x,y,x1in,y1in,x2in,y2in,Naquifers,lambdain,order,rvx,rvy)
 
     ! First lambda is expected to be zero, and is not used
     if ( Naquifers > 1 ) then
-	lambda(1:Naquifers-1) = lambdain(2:Naquifers)
+        lambda(1:Naquifers-1) = lambdain(2:Naquifers)
     end if
 
     ! Precompute binomials
     do n=0,Nterms
-	do m=0,Nterms
-	    rbinom(n,m) = product(rRange(m+1:n)) / product(rRange(1:n-m))
+        do m=0,Nterms
+            rbinom(n,m) = product(rRange(m+1:n)) / product(rRange(1:n-m))
         end do
     end do
 
@@ -189,7 +189,7 @@ subroutine disbeslsho(x,y,x1in,y1in,x2in,y2in,Naquifers,lambdain,order,rvx,rvy)
 
     pcor = cZERO ;
     do n=1,(order+1)/2
-	pcor = pcor + float(order-2*n+2) * z**(order+1-2*n) / float(2*n-1) ;
+        pcor = pcor + float(order-2*n+2) * z**(order+1-2*n) / float(2*n-1) ;
     end do
     pcor = rTWO * pcor ;
 
@@ -207,20 +207,20 @@ subroutine disbeslsho(x,y,x1in,y1in,x2in,y2in,Naquifers,lambdain,order,rvx,rvy)
     do i=1,Naquifers-1
         wdis = cZERO
 
-	! Check whether entire linesink is outside radius of convergence
-	! Outside if |z-zc|>L/2+7lab, and thus |Z|>1+7lab*2/L, or |zeta|>1/biglab+7 (zeta is called z here)
-	biglab = rTWO * lambda(i) / Lin
-	z = ( rTWO*zin - (z1in + z2in) ) / (z2in - z1in) / biglab
+        ! Check whether entire linesink is outside radius of convergence
+        ! Outside if |z-zc|>L/2+7lab, and thus |Z|>1+7lab*2/L, or |zeta|>1/biglab+7 (zeta is called z here)
+        biglab = rTWO * lambda(i) / Lin
+        z = ( rTWO*zin - (z1in + z2in) ) / (z2in - z1in) / biglab
 
-	if ( abs(z) < (Rconv + rONE/biglab) ) then
-	    call IntegralG(zin,z1in,z2in,Lin,lambda(i),order,Nterms,ac,bc,Rconv,rbinom,wdis)
-	    wdis = rTWO * Lin / (z2in-z1in) / biglab * wdis
+        if ( abs(z) < (Rconv + rONE/biglab) ) then
+            call IntegralG(zin,z1in,z2in,Lin,lambda(i),order,Nterms,ac,bc,Rconv,rbinom,wdis)
+            wdis = rTWO * Lin / (z2in-z1in) / biglab * wdis
 
-	    rvx(i+1) = real(wdis)
-	    rvy(i+1) = -aimag(wdis)
-	else
-	    rvx(i+1) = rZERO; rvy(i+1) = rZERO
-	end if
+            rvx(i+1) = real(wdis)
+            rvy(i+1) = -aimag(wdis)
+        else
+            rvx(i+1) = rZERO; rvy(i+1) = rZERO
+        end if
 
     end do
 
@@ -278,8 +278,8 @@ subroutine potbesonlylsho(x,y,x1in,y1in,x2in,y2in,Naquifers,lambda,order,rv)
 
     ! Precompute binomials
     do n=0,Nterms
-	do m=0,Nterms
-	    rbinom(n,m) = product(rRange(m+1:n)) / product(rRange(1:n-m))
+        do m=0,Nterms
+            rbinom(n,m) = product(rRange(m+1:n)) / product(rRange(1:n-m))
         end do
     end do
 
@@ -295,17 +295,17 @@ subroutine potbesonlylsho(x,y,x1in,y1in,x2in,y2in,Naquifers,lambda,order,rv)
     do i=1,Naquifers-1
         pot = 0.0
 
-	! Check whether entire linesink is outside radius of convergence
-	! Outside if |z-zc|>L/2+7lab, and thus |Z|>1+7lab*2/L, or |zeta|>1/biglab+7 (zeta is called z here)
-	biglab = rTWO * lambda(i) / Lin
-	z = ( rTWO*zin - (z1in + z2in) ) / (z2in - z1in) / biglab
+        ! Check whether entire linesink is outside radius of convergence
+        ! Outside if |z-zc|>L/2+7lab, and thus |Z|>1+7lab*2/L, or |zeta|>1/biglab+7 (zeta is called z here)
+        biglab = rTWO * lambda(i) / Lin
+        z = ( rTWO*zin - (z1in + z2in) ) / (z2in - z1in) / biglab
 
-	if ( abs(z) < (Rconv + rONE/biglab) ) then
-	    call IntegralF(zin,z1in,z2in,Lin,lambda(i),order,Nterms,ac,bc,Rconv,rbinom,pot)
-	    rv(i) = -Lin/rTWO * pot
-	else
-	    rv(i) = rZERO
-	end if
+        if ( abs(z) < (Rconv + rONE/biglab) ) then
+            call IntegralF(zin,z1in,z2in,Lin,lambda(i),order,Nterms,ac,bc,Rconv,rbinom,pot)
+            rv(i) = -Lin/rTWO * pot
+        else
+            rv(i) = rZERO
+        end if
 
     end do
 
@@ -364,8 +364,8 @@ subroutine disbesonlylsho(x,y,x1in,y1in,x2in,y2in,Naquifers,lambda,order,rvx,rvy
 
     ! Precompute binomials
     do n=0,Nterms
-	do m=0,Nterms
-	    rbinom(n,m) = product(rRange(m+1:n)) / product(rRange(1:n-m))
+        do m=0,Nterms
+            rbinom(n,m) = product(rRange(m+1:n)) / product(rRange(1:n-m))
         end do
     end do
 
@@ -381,20 +381,20 @@ subroutine disbesonlylsho(x,y,x1in,y1in,x2in,y2in,Naquifers,lambda,order,rvx,rvy
     do i=1,Naquifers-1
         wdis = cZERO
 
-	! Check whether entire linesink is outside radius of convergence
-	! Outside if |z-zc|>L/2+7lab, and thus |Z|>1+7lab*2/L, or |zeta|>1/biglab+7 (zeta is called z here)
-	biglab = rTWO * lambda(i) / Lin
-	z = ( rTWO*zin - (z1in + z2in) ) / (z2in - z1in) / biglab
+        ! Check whether entire linesink is outside radius of convergence
+        ! Outside if |z-zc|>L/2+7lab, and thus |Z|>1+7lab*2/L, or |zeta|>1/biglab+7 (zeta is called z here)
+        biglab = rTWO * lambda(i) / Lin
+        z = ( rTWO*zin - (z1in + z2in) ) / (z2in - z1in) / biglab
 
-	if ( abs(z) < (Rconv + rONE/biglab) ) then
-	    call IntegralG(zin,z1in,z2in,Lin,lambda(i),order,Nterms,ac,bc,Rconv,rbinom,wdis)
-	    wdis = rTWO * Lin / (z2in-z1in) / biglab * wdis
+        if ( abs(z) < (Rconv + rONE/biglab) ) then
+            call IntegralG(zin,z1in,z2in,Lin,lambda(i),order,Nterms,ac,bc,Rconv,rbinom,wdis)
+            wdis = rTWO * Lin / (z2in-z1in) / biglab * wdis
 
-	    rvx(i) = real(wdis)
-	    rvy(i) = -aimag(wdis)
-	else
-	    rvx(i) = rZERO; rvy(i) = rZERO
-	end if
+            rvx(i) = real(wdis)
+            rvy(i) = -aimag(wdis)
+        else
+            rvx(i) = rZERO; rvy(i) = rZERO
+        end if
 
     end do
 
@@ -444,10 +444,10 @@ subroutine potlaplsho(x,y,x1in,y1in,x2in,y2in,order,rv)
 
     !qm(1) = cZERO
     !do m=1,order+1
-    !	qm(m+1) = cZERO
-    !	do n=1,(m+1)/2
-    !	    qm(m+1) = qm(m+1) + z**(m-rTWO*float(n)+rONE) / (rTWO*float(n) - rONE)
-    !	end do
+    !   qm(m+1) = cZERO
+    !   do n=1,(m+1)/2
+    !       qm(m+1) = qm(m+1) + z**(m-rTWO*float(n)+rONE) / (rTWO*float(n) - rONE)
+    !   end do
     !end do
     !qm = rTWO * qm
     !write(*,*) 'qm ',qm
@@ -455,10 +455,10 @@ subroutine potlaplsho(x,y,x1in,y1in,x2in,y2in,order,rv)
     qmnew(1) = cZERO
     qmnew(2) = cTWO
     do m=3,order+1,2
-	qmnew(m+1) = qmnew(m-1) * z * z + cTWO / float(m)
+        qmnew(m+1) = qmnew(m-1) * z * z + cTWO / float(m)
     end do
     do m=2,order+1,2
-	qmnew(m+1) = qmnew(m) * z 
+        qmnew(m+1) = qmnew(m) * z 
     end do
     !write(*,*) 'qmnew ',qmnew
 
@@ -491,7 +491,7 @@ subroutine omegalaplsho(x,y,x1in,y1in,x2in,y2in,order,rv,rvpsi)
     ! Input / Output
     real*8, intent(in) :: x,y,x1in,y1in,x2in,y2in
     integer, intent(in) :: order
-    real*8,intent(inout) :: rv(*), rvpsi
+    real*8,intent(inout) :: rv(*), rvpsi(*)
 
     ! Locals
 
@@ -519,10 +519,10 @@ subroutine omegalaplsho(x,y,x1in,y1in,x2in,y2in,order,rv,rvpsi)
 
     !qm(1) = cZERO
     !do m=1,order+1
-    !	qm(m+1) = cZERO
-    !	do n=1,(m+1)/2
-    !	    qm(m+1) = qm(m+1) + z**(m-rTWO*float(n)+rONE) / (rTWO*float(n) - rONE)
-    !	end do
+    !   qm(m+1) = cZERO
+    !   do n=1,(m+1)/2
+    !       qm(m+1) = qm(m+1) + z**(m-rTWO*float(n)+rONE) / (rTWO*float(n) - rONE)
+    !   end do
     !end do
     !qm = rTWO * qm
     !write(*,*) 'qm ',qm
@@ -530,10 +530,10 @@ subroutine omegalaplsho(x,y,x1in,y1in,x2in,y2in,order,rv,rvpsi)
     qmnew(1) = cZERO
     qmnew(2) = cTWO
     do m=3,order+1,2
-	qmnew(m+1) = qmnew(m-1) * z * z + cTWO / float(m)
+        qmnew(m+1) = qmnew(m-1) * z * z + cTWO / float(m)
     end do
     do m=2,order+1,2
-	qmnew(m+1) = qmnew(m) * z 
+        qmnew(m+1) = qmnew(m) * z 
     end do
     !write(*,*) 'qmnew ',qmnew
 
@@ -600,14 +600,14 @@ subroutine dislaplsho(x,y,x1in,y1in,x2in,y2in,order,rvx,rvy)
     logterm = log(zmin1/zplus1)
 
     do i=1,order+1
-	wdis(i) = float(i) * z**(i-1) * logterm
-	wdis(i) = wdis(i) + z**i * zterm3 - zterm1 + (-rONE)**i * zterm2
-	qm = cZERO
+        wdis(i) = float(i) * z**(i-1) * logterm
+        wdis(i) = wdis(i) + z**i * zterm3 - zterm1 + (-rONE)**i * zterm2
+        qm = cZERO
         do n=1,(i+1)/2
-	    qm = qm + float(i-2*n+1) * z**(i-2*n) / float(2*n-1)
-	end do
-	wdis(i) = wdis(i) + rTWO * qm
-	cdum = 1.d0 / i  ! Without this intermediate statement it didn't seem to work previously, so I leave it in
+            qm = qm + float(i-2*n+1) * z**(i-2*n) / float(2*n-1)
+        end do
+        wdis(i) = wdis(i) + rTWO * qm
+        cdum = 1.d0 / i  ! Without this intermediate statement it didn't seem to work previously, so I leave it in
         wdis(i) = wdis(i) * Lin / rTWO / (z2in-z1in) / pi * cdum;
         rvx(i) = real(wdis(i));
         rvy(i) = -aimag(wdis(i))
@@ -670,13 +670,13 @@ subroutine potbesldho(x,y,x1in,y1in,x2in,y2in,Naquifers,lambdain,order,rv)
 
     ! First lambda is expected to be zero, and is not used
     if ( Naquifers > 1 ) then
-	lambda(1:Naquifers-1) = lambdain(2:Naquifers)
+        lambda(1:Naquifers-1) = lambdain(2:Naquifers)
     end if
 
     ! Precompute binomials
     do n=0,Nterms
-	do m=0,Nterms
-	    rbinom(n,m) = product(rRange(m+1:n)) / product(rRange(1:n-m))
+        do m=0,Nterms
+            rbinom(n,m) = product(rRange(m+1:n)) / product(rRange(1:n-m))
         end do
     end do
 
@@ -693,7 +693,7 @@ subroutine potbesldho(x,y,x1in,y1in,x2in,y2in,Naquifers,lambdain,order,rv)
     comega = z**order * log(zmin1/zplus1)
     qm = cZERO
     do n=1,(order+1)/2
-	qm = qm + z**(order-rTWO*float(n)+rONE) / (rTWO*float(n) - rONE)
+        qm = qm + z**(order-rTWO*float(n)+rONE) / (rTWO*float(n) - rONE)
     end do
     comega = rONE/(rTWO*pi*ci) * ( comega + rTWO * qm )
 
@@ -704,26 +704,26 @@ subroutine potbesldho(x,y,x1in,y1in,x2in,y2in,Naquifers,lambdain,order,rv)
     do i=1,Naquifers-1
         pot = rZERO
 
-	! Check whether entire linedoublet is outside radius of convergence
-	! Outside if |z-zc|>L/2+7lab, and thus |Z|>1+7lab*2/L, or |zeta|>1/biglab+7 (zeta is called z here)
-	biglab = rTWO * lambda(i) / Lin
-	z = ( rTWO*zin - (z1in + z2in) ) / (z2in - z1in) / biglab
+        ! Check whether entire linedoublet is outside radius of convergence
+        ! Outside if |z-zc|>L/2+7lab, and thus |Z|>1+7lab*2/L, or |zeta|>1/biglab+7 (zeta is called z here)
+        biglab = rTWO * lambda(i) / Lin
+        z = ( rTWO*zin - (z1in + z2in) ) / (z2in - z1in) / biglab
 
-	if ( abs(z) < (Rconv + rONE/biglab) ) then
-	    call findm1m2(zin,z1in,z2in,Lin,lambda(i),Rconv,m1,m2,NLS)
-	    comega = cZERO
-	    if (m1 > 0) then   ! Otherwise outside radius of convergence
-		z1 = z1in + float(m1-1)/float(NLS) * (z2in-z1in)
-		z2 = z1in + float(m2)/float(NLS)   * (z2in-z1in)
-		del0 = float(1-m1-m2+NLS)/float(1-m1+m2)
-		ra = float(NLS) / float(1+m2-m1)
-		call IntegralLapLineDipole(zin,z1,z2,del0,ra,order,rbinom,Nterms,comega)
-	    end if
-	    call IntegralF(zin,z1in,z2in,Lin,lambda(i),order,Nterms,ac,bc,Rconv,rbinom,pot)
-	    rv(i+1) = real(comega/ci) + aimag(z) / biglab * pot  ! Note that z is really zeta in analysis
-	else
-	    rv(i+1) = rZERO
-	end if
+        if ( abs(z) < (Rconv + rONE/biglab) ) then
+            call findm1m2(zin,z1in,z2in,Lin,lambda(i),Rconv,m1,m2,NLS)
+            comega = cZERO
+            if (m1 > 0) then   ! Otherwise outside radius of convergence
+                z1 = z1in + float(m1-1)/float(NLS) * (z2in-z1in)
+                z2 = z1in + float(m2)/float(NLS)   * (z2in-z1in)
+                del0 = float(1-m1-m2+NLS)/float(1-m1+m2)
+                ra = float(NLS) / float(1+m2-m1)
+                call IntegralLapLineDipole(zin,z1,z2,del0,ra,order,rbinom,Nterms,comega)
+            end if
+            call IntegralF(zin,z1in,z2in,Lin,lambda(i),order,Nterms,ac,bc,Rconv,rbinom,pot)
+            rv(i+1) = real(comega/ci) + aimag(z) / biglab * pot  ! Note that z is really zeta in analysis
+        else
+            rv(i+1) = rZERO
+        end if
 
     end do
 
@@ -784,13 +784,13 @@ subroutine disbesldho(x,y,x1in,y1in,x2in,y2in,Naquifers,lambdain,order,rvx,rvy)
 
     ! First lambda is expected to be zero, and is not used
     if ( Naquifers > 1 ) then
-	lambda(1:Naquifers-1) = lambdain(2:Naquifers)
+        lambda(1:Naquifers-1) = lambdain(2:Naquifers)
     end if
 
     ! Precompute binomials
     do n=0,Nterms
-	do m=0,Nterms
-	    rbinom(n,m) = product(rRange(m+1:n)) / product(rRange(1:n-m))
+        do m=0,Nterms
+            rbinom(n,m) = product(rRange(m+1:n)) / product(rRange(1:n-m))
         end do
     end do
 
@@ -806,17 +806,17 @@ subroutine disbesldho(x,y,x1in,y1in,x2in,y2in,Naquifers,lambdain,order,rvx,rvy)
     ! Laplace line-doublet
 
     if (order == 0) then
-	wdis = - ( rONE / zmin1 - rONE / zplus1 ) / (pi * ci * (z2in - z1in) )
+        wdis = - ( rONE / zmin1 - rONE / zplus1 ) / (pi * ci * (z2in - z1in) )
     else
-	wdis = float(order) * z**(order-1) * log(zmin1/zplus1)
-	wdis = wdis + z**order * ( rONE / zmin1 - rONE / zplus1 )
-	qm = cZERO
-	if (order > 1) then ! To avoid a possible problem of 0 * 0^(-1)
-	    do n=1,order/2
-		qm = qm + float(order-2*n+1) * z**(order-2*n) / float(2*n-1)
-	    end do
-	end if
-	wdis = - ( wdis + rTWO * qm ) / (pi*ci*(z2in-z1in)) ;
+        wdis = float(order) * z**(order-1) * log(zmin1/zplus1)
+        wdis = wdis + z**order * ( rONE / zmin1 - rONE / zplus1 )
+        qm = cZERO
+        if (order > 1) then ! To avoid a possible problem of 0 * 0^(-1)
+            do n=1,order/2
+                qm = qm + float(order-2*n+1) * z**(order-2*n) / float(2*n-1)
+            end do
+        end if
+        wdis = - ( wdis + rTWO * qm ) / (pi*ci*(z2in-z1in)) ;
     end if
 
     rvx(1) = real(wdis); rvy(1) = -aimag(wdis)
@@ -825,31 +825,31 @@ subroutine disbesldho(x,y,x1in,y1in,x2in,y2in,Naquifers,lambdain,order,rvx,rvy)
     do i=1,Naquifers-1
         wdis = cZERO
 
-	! Check whether entire line-doublet is outside radius of convergence
-	! Outside if |z-zc|>L/2+7lab, and thus |Z|>1+7lab*2/L, or |zeta|>1/biglab+7 (zeta is called z here)
-	biglab = rTWO * lambda(i) / Lin
-	z = ( rTWO*zin - (z1in + z2in) ) / (z2in - z1in) / biglab
+        ! Check whether entire line-doublet is outside radius of convergence
+        ! Outside if |z-zc|>L/2+7lab, and thus |Z|>1+7lab*2/L, or |zeta|>1/biglab+7 (zeta is called z here)
+        biglab = rTWO * lambda(i) / Lin
+        z = ( rTWO*zin - (z1in + z2in) ) / (z2in - z1in) / biglab
 
-	if ( abs(z) < (Rconv + rONE/biglab) ) then
-	    call findm1m2(zin,z1in,z2in,Lin,lambda(i),Rconv,m1,m2,NLS)
-	    wdis1 = cZERO
-	    if (m1 > 0) then
-		z1 = z1in + float(m1-1)/float(NLS) * (z2in-z1in)
-		z2 = z1in + float(m2)/float(NLS)   * (z2in-z1in)
-		del0 = float(1-m1-m2+NLS)/float(1-m1+m2)
-		ra = float(NLS) / float(1+m2-m1)
-		call IntegralLapLineDipoleDis(zin,z1,z2,del0,ra,order,rbinom,Nterms,wdis1)
-		wdis1 = -rTWO  * wdis1 / (ci*(z2-z1))
-	    end if
-	    call IntegralF(zin,z1in,z2in,Lin,lambda(i),order,Nterms,ac,bc,Rconv,rbinom,pot)
-	    call IntegralG(zin,z1in,z2in,Lin,lambda(i),order,Nterms,ac,bc,Rconv,rbinom,wdis2)
-	    wdis3 =  pot / (rTWO * ci) + wdis2 * aimag(z)
-	    
-	    wdis = wdis1 - rFOUR * wdis3 / ( biglab**2 * (z2in-z1in) )
-	    
-	end if 
+        if ( abs(z) < (Rconv + rONE/biglab) ) then
+            call findm1m2(zin,z1in,z2in,Lin,lambda(i),Rconv,m1,m2,NLS)
+            wdis1 = cZERO
+            if (m1 > 0) then
+                z1 = z1in + float(m1-1)/float(NLS) * (z2in-z1in)
+                z2 = z1in + float(m2)/float(NLS)   * (z2in-z1in)
+                del0 = float(1-m1-m2+NLS)/float(1-m1+m2)
+                ra = float(NLS) / float(1+m2-m1)
+                call IntegralLapLineDipoleDis(zin,z1,z2,del0,ra,order,rbinom,Nterms,wdis1)
+                wdis1 = -rTWO  * wdis1 / (ci*(z2-z1))
+            end if
+            call IntegralF(zin,z1in,z2in,Lin,lambda(i),order,Nterms,ac,bc,Rconv,rbinom,pot)
+            call IntegralG(zin,z1in,z2in,Lin,lambda(i),order,Nterms,ac,bc,Rconv,rbinom,wdis2)
+            wdis3 =  pot / (rTWO * ci) + wdis2 * aimag(z)
+            
+            wdis = wdis1 - rFOUR * wdis3 / ( biglab**2 * (z2in-z1in) )
+            
+        end if 
 
-	rvx(i+1) = real(wdis); rvy(i+1) = -aimag(wdis)
+        rvx(i+1) = real(wdis); rvy(i+1) = -aimag(wdis)
 
     end do
 
@@ -918,9 +918,9 @@ subroutine potlapldho(x,y,x1in,y1in,x2in,y2in,order,rv)
     else
 
         series = cZERO
-	oneoverZsq = 1.0d0/ ( z * z )
-	oneoverZpower = 1.0 / z
-	do i = 1, order + Nfarfield, 2
+        oneoverZsq = 1.0d0/ ( z * z )
+        oneoverZpower = 1.0 / z
+        do i = 1, order + Nfarfield, 2
             series(i) = oneoverZpower / float(i)
             oneoverZpower = oneoverZpower * oneoverZsq
         end do
@@ -1003,9 +1003,9 @@ subroutine dislapldho(x,y,x1in,y1in,x2in,y2in,order,rvx,rvy)
 
         series = cZERO
         nseries = cZERO
-	oneoverZsq = 1.0d0/ ( z * z )
-	oneoverZpower = 1.0 / z
-	do i = 1, order + Nfarfield, 2
+        oneoverZsq = 1.0d0/ ( z * z )
+        oneoverZpower = 1.0 / z
+        do i = 1, order + Nfarfield, 2
             series(i) = oneoverZpower / float(i)
             nseries(i) = series(i) * float(i)
             oneoverZpower = oneoverZpower * oneoverZsq
@@ -1160,11 +1160,11 @@ subroutine IntegralG(zin,z1in,z2in,Lin,lambda,order,Nterms,ac,bc,Rconv,rbinom,wd
     ! Coefficients gamma(n,m), Eq. 21
     ! Store coefficents in matrix.
     do n = 0, Nterms
-	czmzbarp(n) = (z-zbar)**n
+        czmzbarp(n) = (z-zbar)**n
     end do
     do n = 0, Nterms
     do m = 0, n
-	cgamma(n,m) = rbinom(n,m) * czmzbarp(n-m)
+        cgamma(n,m) = rbinom(n,m) * czmzbarp(n-m)
     end do
     end do
 
@@ -1184,33 +1184,33 @@ subroutine IntegralG(zin,z1in,z2in,Lin,lambda,order,Nterms,ac,bc,Rconv,rbinom,wd
 
     ! Compute hat coefficients
     do n = 0, Nterms-1
-	cahat(n) = float(n+1) * ac(n+1)
-	cbhat(n) = ac(n+1) + float(n+1) * bc(n+1)
+        cahat(n) = float(n+1) * ac(n+1)
+        cbhat(n) = ac(n+1) + float(n+1) * bc(n+1)
     end do
 
     ! Eq. 23
     do n = 0, 2*Nterms-1
-	calphat(n) = cZERO; cbetat(n) = cZERO	
+        calphat(n) = cZERO; cbetat(n) = cZERO   
         do m = max(0,n-Nterms+1),(n+1)/2
-	    calphat(n) = calphat(n) + cahat(n-m) * cgamma(n-m+1,m)
-	    cbetat(n) = cbetat(n) + cbhat(n-m) * cgamma(n-m+1,m)
-	end do
+            calphat(n) = calphat(n) + cahat(n-m) * cgamma(n-m+1,m)
+            cbetat(n) = cbetat(n) + cbhat(n-m) * cgamma(n-m+1,m)
+        end do
     end do
 
     ! Compute coefficients of delta^p
     do m = 0,order
-	cc(m) = rbinom(order,m) * z**(order-m) * biglab**order
+        cc(m) = rbinom(order,m) * z**(order-m) * biglab**order
     end do
     if ( order > 0 ) then
         do n = 0, 2*Nterms - 1 + order
-	    calpha(n) = cZERO; cbeta(n) = cZERO
-	    do m = max(0,n-2*Nterms+1), min(n,order)
-		calpha(n) = calpha(n) + cc(m) * calphat(n-m)
-	        cbeta(n) = cbeta(n) + cc(m) * cbetat(n-m)
-	    end do
-	end do
+            calpha(n) = cZERO; cbeta(n) = cZERO
+            do m = max(0,n-2*Nterms+1), min(n,order)
+                calpha(n) = calpha(n) + cc(m) * calphat(n-m)
+                cbeta(n) = cbeta(n) + cc(m) * cbetat(n-m)
+            end do
+        end do
     else
-	calpha = calphat
+        calpha = calphat
         cbeta = cbetat
     end if
 
@@ -1223,7 +1223,7 @@ subroutine IntegralG(zin,z1in,z2in,Lin,lambda,order,Nterms,ac,bc,Rconv,rbinom,wd
     if ( abs(cd2minz) < tiny/lambda) cd2minz = cd2minz + tiny
     cln1 = log(cd1minz);  cln2 = log(cd2minz)
     do n = 0, 2*Nterms - 1 + order
-	g2 = g2 - ( calpha(n) * cln2 - calpha(n)/(n+1) + cbeta(n) ) * (cd2minz)**(n+1) / float(n+1)
+        g2 = g2 - ( calpha(n) * cln2 - calpha(n)/(n+1) + cbeta(n) ) * (cd2minz)**(n+1) / float(n+1)
         g2 = g2 + ( calpha(n) * cln1 - calpha(n)/(n+1) + cbeta(n) ) * (cd1minz)**(n+1) / float(n+1)
     end do
     g2 = biglabin * g2 / (2*pi)
@@ -1233,25 +1233,25 @@ subroutine IntegralG(zin,z1in,z2in,Lin,lambda,order,Nterms,ac,bc,Rconv,rbinom,wd
     ! Eq. 23
     calphat(0) = cZERO
     do n = 1, 2*Nterms-1  ! Loop start at 1, because of bug in Digital Fortran
-	calphat(n) = cZERO
+        calphat(n) = cZERO
         do m = max(0,n-Nterms), (n-1)/2
-	    calphat(n) = calphat(n) + cahat(n-m-1) * cgamma(n-m-1,m) * (-rONE)**(n-1-2*m)
-	end do
+            calphat(n) = calphat(n) + cahat(n-m-1) * cgamma(n-m-1,m) * (-rONE)**(n-1-2*m)
+        end do
     end do
 
     ! Compute coefficients of delta^p 
     do m = 0,order
-	cc(m) = rbinom(order,m) * zbar**(order-m) * biglab**order
+        cc(m) = rbinom(order,m) * zbar**(order-m) * biglab**order
     end do
     if ( order > 0 ) then
-	do n = 0, 2*Nterms-1+order
+        do n = 0, 2*Nterms-1+order
             calpha(n) = cZERO
-	    do m = max(0,n-2*Nterms+1), min(n,order)
-		calpha(n) = calpha(n) + cc(m) * calphat(n-m)
+            do m = max(0,n-2*Nterms+1), min(n,order)
+                calpha(n) = calpha(n) + cc(m) * calphat(n-m)
             end do
-	end do
+        end do
     else
-	calpha = calphat
+        calpha = calphat
     end if
 
     ! Computation of integral
@@ -1263,7 +1263,7 @@ subroutine IntegralG(zin,z1in,z2in,Lin,lambda,order,Nterms,ac,bc,Rconv,rbinom,wd
     cd1minz = conjg(cd1minz); cd2minz = conjg(cd2minz)
     cln1 = conjg(cln1);  cln2 = conjg(cln2)
     do n = 0, 2*Nterms - 1 + order
-	g3 = g3 - ( calpha(n) * cln2 - calpha(n)/(n+1) ) * (cd2minz)**(n+1) / float(n+1)
+        g3 = g3 - ( calpha(n) * cln2 - calpha(n)/(n+1) ) * (cd2minz)**(n+1) / float(n+1)
         g3 = g3 + ( calpha(n) * cln1 - calpha(n)/(n+1) ) * (cd1minz)**(n+1) / float(n+1)
     end do
     g3 = biglabin * g3 / (rTWO*pi)
@@ -1292,11 +1292,11 @@ subroutine findm1m2(zin,z1in,z2in,Lin,lambda,Rconv,m1,m2,NLS)
     m1 = 0; m2 = 0
     do j = 1, NLS
         z1 = z1in + float(j-1)/NLS * (z2in-z1in)
-	z2 = z1 + (z2in-z1in)/NLS
-	L = abs(z2-z1)
-	biglab = rTWO * lambda / L
-	z = ( rTWO*zin - (z1 + z2) ) / (z2 - z1) / biglab
-	if ( m1 == 0 ) then
+        z2 = z1 + (z2in-z1in)/NLS
+        L = abs(z2-z1)
+        biglab = rTWO * lambda / L
+        z = ( rTWO*zin - (z1 + z2) ) / (z2 - z1) / biglab
+        if ( m1 == 0 ) then
             if ( abs(z) < Rconv ) m1 = j
         else
             if ( abs(z) > Rconv ) then
@@ -1344,16 +1344,16 @@ subroutine IntegralLapLineDipole(zin,z1,z2,del0,ra,order,rbinom,Nterms,comega)
 
     zterm = cZERO
     do n = 0,order
-	zterm = zterm + cg(n) * z**n
+        zterm = zterm + cg(n) * z**n
     enddo
     
     qmtot = cZERO
     do m = 1,order
-	qm = cZERO
+        qm = cZERO
         do n=1,(m+1)/2
-	    qm = qm + z**(m-2*n+1) / float(2*n - 1)
+            qm = qm + z**(m-2*n+1) / float(2*n - 1)
         end do
-	qmtot = qmtot + rTWO * cg(m) * qm
+        qmtot = qmtot + rTWO * cg(m) * qm
     end do
 
     comega = ( zterm * log(zmin1/zplus1) + qmtot ) / (rTWO * pi)
@@ -1393,19 +1393,19 @@ subroutine IntegralLapLineDipoleDis(zin,z1,z2,del0,ra,order,rbinom,Nterms,wdis)
 
     zterm1 = cZERO; zterm2 = cZERO
     do n = 1,order
-	zterm1 = zterm1 + cg(n) * float(n) * z**(n-1)
+        zterm1 = zterm1 + cg(n) * float(n) * z**(n-1)
     enddo
     do n = 0,order
-	zterm2 = zterm2 + cg(n) * z**n
+        zterm2 = zterm2 + cg(n) * z**n
     end do
     
     qmtot = cZERO
     do m = 2,order
-	qm = cZERO
+        qm = cZERO
         do n=1,m/2
-	    qm = qm + float(m-2*n+1) * z**(m-2*n) / float(2*n - 1)
+            qm = qm + float(m-2*n+1) * z**(m-2*n) / float(2*n - 1)
         end do
-	qmtot = qmtot + rTWO * cg(m) * qm
+        qmtot = qmtot + rTWO * cg(m) * qm
     end do
 
     wdis = ( zterm1 * log(zmin1/zplus1) + zterm2 * (rONE/zmin1 - rONE/zplus1) + qmtot ) / (rTWO * pi)

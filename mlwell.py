@@ -85,17 +85,17 @@ class Well(Element):
                             rolam = sqrt(rsqolam)
                             rv[:,i+1] = scipy.special.k0(rolam)
                     rv = self.coef * rv     # Only multiply with coefficients if Bessel part is computed, cause in fakesemi there are more aquifers, and first coef is zero
-##        elif self.aquiferParent.type == self.aquiferParent.semi:
-##            if self.aquiferParent == aq:                # In same semi-confined aquifer
-##                rsq = (x-self.xw)**2 + (y-self.yw)**2
-##                rsq = max( rsq, self.rwsq )
-##                for i in range(aq.Naquifers):
-##                    rsqolam = rsq / aq.lab[i]**2
-##                    if rsqolam <= self.Rconvsq:
-##                        rolam = sqrt(rsqolam)
-##                        rv[i] = scipy.special.k0(rolam)
-##                rv = self.coef * rv
-##                # Else we return zeros
+        elif self.aquiferParent.type == self.aquiferParent.semi:
+            if self.aquiferParent == aq:                # In same semi-confined aquifer
+                rsq = (x-self.xw)**2 + (y-self.yw)**2
+                rsq = max( rsq, self.rwsq )
+                for i in range(aq.Naquifers):
+                    rsqolam = rsq / aq.lab[i]**2
+                    if rsqolam <= self.Rconvsq:
+                        rolam = sqrt(rsqolam)
+                        rv[:,i] = scipy.special.k0(rolam)
+                rv = self.coef * rv
+                # Else we return zeros
         return rv
     def dischargeInfluence(self,aq,x,y):
         rvx = zeros((self.NscreenedLayers,aq.Naquifers),'d'); rvy = zeros((self.NscreenedLayers,aq.Naquifers),'d')
