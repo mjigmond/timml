@@ -515,7 +515,9 @@ class ResLineSink(LineSink):
             self.bottomelev = float(bottomelev) # Only used for determining percolating line-sinks
         else:
             self.bottomelev = None
-	zcp = complex(self.xc,self.yc) + complex(0.0, 0.5 * self.width) * exp( complex( 0.0, self.alpha ) )
+	#zcp = complex(self.xc,self.yc) + complex(0.0, 0.5 * self.width) * exp( complex( 0.0, self.alpha ) )
+        # Put the control point back at the center of the line-sink, else strange things may happen when width is large
+        zcp = complex(self.xc,self.yc) + complex(0.0, 0.5 * self.width) * exp( complex( 0.0, self.alpha ) )
 	self.xcp, self.ycp = zcp.real, zcp.imag
     def __repr__(self):
 	return 'ResLineSink z1,z2,head,res,width,strength,layer: ' + \
