@@ -485,15 +485,15 @@ class Model:
         '''
         newsolution_computed = False
         if start == 1:  # Generate matrix
+            self.collectionDict = {}
+            for e in self.elementList: e.addElementToCollection(self)
             if reInitializeAllElements == 1:
                 # Initialize elements and rebuild collection
-                self.collectionDict = {}
                 self.aq.setCoefs()
                 for p in self.aq.inhomList:
                     p.setCoefs()
                 for e in self.elementList:
                     e.setCoefs()
-                    e.addElementToCollection(self)
             matrix = []
             Nel = len(self.elementList)
             print 'Number of elements: ',Nel
@@ -557,6 +557,22 @@ class Model:
         self.xsol = xsol       
         newsolution_computed = True
         return newsolution_computed
+    
+    def press(self,event):
+        print 'Hello ml'
+        #if event.inaxes is None: return
+        #print 'event.button ',event.button
+        #if event.button != 3: return
+        #ax = gcf().axes[0]
+        #x1,x2,y1,y2 = ax.axis()
+        #step = (x2 - x1) / 100.0
+        #if not self.ml.trace.forward: step = -step
+        #tmax = self.ml.trace.tmax
+        #zbegin = self.ml.trace.zbegin
+        #xsec = self.ml.trace.xsec
+        #Npoints = len(zbegin)
+        #timtracelines( self.ml, Npoints*[event.xdata], Npoints*[event.ydata], zbegin, step, tmax=tmax, Nmax=200, window=(x1,y1,x2,y2), xsec=xsec )
+
 
         
             

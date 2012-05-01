@@ -6,7 +6,7 @@ from mltrace import *
 
 def timcontour( ml, xmin, xmax, nx, ymin, ymax, ny, Naquifers=1, levels = 10, color = None, \
                width = 0.5, style = '-', separate = 0, layout = 1, newfig = 1, labels = 0, labelfmt = '%1.2f', xsec = 0,
-               returnheads = 0, returncontours = 0, fillcontour = 0, size=None, mayavi=False):
+               returnheads = 0, returncontours = 0, fillcontour = 0, size=(8,8), mayavi=False):
     '''Contours head with pylab'''
     rcParams['contour.negative_linestyle']='solid'
 
@@ -77,7 +77,7 @@ def timcontour( ml, xmin, xmax, nx, ymin, ymax, ny, Naquifers=1, levels = 10, co
             hmin = amin(head[k,:,:].flat)
             hmax = amax(head[k,:,:].flat)
             print 'Layer ',aquiferRange[k]+1,' min,max: ',hmin,', ',hmax,'. Enter: hmin,hmax,step '
-            h1,h2,delh = input()
+            h1,h2,delh = eval( raw_input() )
             levels = levels + [ arange(h1,h2+1e-8,delh) ]
     elif type(levels) is int:
         levels = len(aquiferRange)*[levels]
@@ -85,10 +85,10 @@ def timcontour( ml, xmin, xmax, nx, ymin, ymax, ny, Naquifers=1, levels = 10, co
         levels = len(aquiferRange)*[levels]
         
     # Drawing separate figures for each head
-    if size == None: size = (8,8)
+    xsize,ysize = size
     if separate:
         for k in range(len(aquiferRange)):
-            figure( figsize=(xsize,ysize) )
+            figure( figsize=size )
             axis('scaled')
             axis( [xmin,xmax,ymin,ymax] )
             if layout: timlayout(ml,overlay=True,autoscale=False)
@@ -101,21 +101,31 @@ def timcontour( ml, xmin, xmax, nx, ymin, ymax, ny, Naquifers=1, levels = 10, co
         if newfig:
             fig = figure( figsize=size )
             if xsec:
+                #xc,yc = .1 + 0.5*0.8, .38 + 0.5*0.55
+                #aspect = float((ymax-ymin)) / (xmax-xmin)
+                #print 'aspect ',aspect
+                #if aspect < .55 / .8:  # Wider than high
+                #    dx,dy = .8, aspect * 0.8
+                #    ax1 = axes([0.1,yc-0.5*dy,.8,dy])
+                #else:
+                #    dx,dy = 0.55 / aspect, 0.55  # Higher than wide
+                #    print 'hello ',xc-0.5*dx,0.38,dx,.55
+                #    ax1 = axes([xc-0.5*dx,0.38,dx,.55])
                 ax1 = axes([.1,.38,.8,.55])
+                ax1.set_aspect(aspect='equal',adjustable='box-forced')
                 setp( ax1.get_xticklabels(), visible=False)
-                ax1.set_aspect(aspect='equal')
             else:
-                ax = subplot(111)
-                #ax.axis('scaled')
-                draw()
+                ax1 = subplot(111)
+                ax1.set_aspect(aspect='equal',adjustable='box')
         else:
-            ax = gca()
+            ax1 = gca()
         if layout: timlayout(ml,overlay=True,autoscale=False)
         for k in range(len(aquiferRange)):
             if fillcontour:
-                contourset = contourf( xg, yg, head[k,:,:], levels[k], fmt=labelfmt )
+                contourset = ax1.contourf( xg, yg, head[k,:,:], levels[k], fmt=labelfmt )
             else:
-                contourset = contour( xg, yg, head[k,:,:], levels[k], colors = color[k], linewidths = width, fmt=labelfmt )
+                contourset = ax1.contour( xg, yg, head[k,:,:], levels[k], colors = color[k], linewidths = width, fmt=labelfmt )
+                print 'done with contouring'
                 if style[k] != '-':
                     print 'mpl bug in setting line styles of collections'
 ##                for l in contourset.collections:
@@ -128,18 +138,22 @@ def timcontour( ml, xmin, xmax, nx, ymin, ymax, ny, Naquifers=1, levels = 10, co
 ##                    elif style[k] == '-.':
 ##                        l.set_linestyle( (0, (3.0, 5.0, 1.0, 5.0)) )
             if labels:
-                clabel( contourset, inline = 1, fmt = labelfmt ) 
+                clabel( contourset, inline = 1, fmt = labelfmt )
+        ax1.set_xlim(xmin,xmax)
+        ax1.set_ylim(ymin,ymax)
         if xsec:
+            print 'xmin,xmax ',xmin,xmax
+            print 'ymin,ymax ',ymin,ymax
             ax2 = axes([.1,.1,.8,.25],sharex=ax1)
-            x1,x2 = ax2.get_xlim()
             for i in range(ml.aq.Naquifers-1):
-                fill( [x1,x2,x2,x1], [ml.aq.zt[i+1],ml.aq.zt[i+1],ml.aq.zb[i],ml.aq.zb[i]], fc=[.8,.8,.8],ec=[.8,.8,.8])
+                fill( [xmin,xmax,xmax,xmin], [ml.aq.zt[i+1],ml.aq.zt[i+1],ml.aq.zb[i],ml.aq.zb[i]], fc=[.8,.8,.8],ec=[.8,.8,.8])
+            ax2.set_xlim(xmin,xmax)
             ax2.set_ylim(ml.aq.zb[-1],ml.aq.zt[0])
         else:
-            ax.set_aspect(aspect='equal',adjustable='box')
-            ax.set_xlim(xmin,xmax)
-            ax.set_ylim(ymin,ymax)
-    draw()
+            ax1.set_xlim(xmin,xmax)
+            ax1.set_ylim(ymin,ymax)
+    #draw()
+    show()
     if not hasattr(ml,'trace'): ml.trace = TraceSettings(ml)
     ml.trace.xsec = xsec     
     if returnheads and returncontours:
@@ -150,7 +164,7 @@ def timcontour( ml, xmin, xmax, nx, ymin, ymax, ny, Naquifers=1, levels = 10, co
         return contourset
     
 def timcontourlocal(ml, nx=50, ny=50, Naquifers=1, levels = 10, color = None, \
-               width = 0.5, style = '-', newfig = 0, labels = 0, labelfmt = '%1.2f', fillcontour = 0, xsec = False):
+               width = 0.5, style = '-', newfig = 1, labels = 0, labelfmt = '%1.2f', fillcontour = 0, xsec = False):
     ax = gcf().axes[0]
     x1,x2 = ax.get_xlim()
     y1,y2 = ax.get_ylim()
@@ -161,7 +175,7 @@ def timcontourlocal(ml, nx=50, ny=50, Naquifers=1, levels = 10, color = None, \
     if newfig: layout = 1
     timcontour( ml, x1, x2, nx, y1, y2, ny, Naquifers=Naquifers, levels=levels, color=color, \
                width=width, style=style, separate=0, layout=layout, newfig=newfig, labels=labels, labelfmt=labelfmt, xsec=xsec,
-               returnheads=0, returncontours=0, fillcontour=fillcontour, size=None)
+               returnheads=0, returncontours=0, fillcontour=fillcontour)
     
 class TraceSettings:
     def __init__(self,ml):
@@ -181,17 +195,17 @@ def setTrace(ml,forward=None,tmax=None,zbegin=None):
         ml.trace.zbegin = zbegin
         
 def traceOn(ml,forward=None,tmax=None,zbegin=None):
-    ip = InteractivePathline(ml)
-    gcf().canvas.mpl_connect('button_press_event',ip.press)     
+    ml.ip = InteractivePathline(ml) # Needed so that ip remains after function is called; just ip.press isn't enough
+    gcf().canvas.mpl_connect('button_press_event',ml.ip.press)
     setTrace(ml,forward,tmax,zbegin)
 
 class InteractivePathline:
     def __init__(self,ml):
         self.ml = ml
     def press(self,event):
-        print 'Hello'
+        #print 'Hello'
         if event.inaxes is None: return
-        print 'event.button ',event.button
+        #print 'event.button ',event.button
         if event.button != 3: return
         ax = gcf().axes[0]
         x1,x2,y1,y2 = ax.axis()
@@ -280,11 +294,14 @@ def timtracelines(ml,xlist,ylist,zlist,step,twoD=1,tmax=1e30,Nmax=200,labfrac=2.
     draw()
     return
 
-def capturezone( ml, w, N, z, step, tmax, xsec=False ):
+def capturezone( ml, w, N, z, tmax, xsec=False ):
     xstart = w.xw + 1.01*w.rw * cos( arange(0.01,2*pi,2*pi/N) )
     ystart = w.yw + 1.01*w.rw * sin( arange(0.01,2*pi,2*pi/N) )
     zstart = z * ones(len(xstart))
-    timtracelines(ml,xstart,ystart,zstart,step,tmax=tmax,xsec=xsec)
+    ax = gcf().axes[0]
+    x1,x2,y1,y2 = ax.axis()
+    step = (x2 - x1) / 100.0
+    timtracelines(ml,xstart,ystart,zstart,-step,tmax=tmax,xsec=xsec)
     
 
 def timvertcontour( ml, x1, y1, x2, y2, nx, zmin, zmax, nz, levels = 10, color = None, \
