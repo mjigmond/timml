@@ -43,7 +43,7 @@ from mltrace import *
 from mlholinesink import *
 from mllinesinkgeneral import *
 from mllinedoubletimp import *
-from mllake import *
+#from mllake import *  # use of mllake requires installation of shapely
 #from TimMLmpl import *
 from mlpylabutil import *
 
