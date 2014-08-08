@@ -11,18 +11,17 @@
 
 import sys
 
-if not hasattr(sys, 'version_info') or sys.version_info < (2,3,0,'alpha',0):
-	raise SystemExit, "Python 2.5 or later required to build TimML"
+#if not hasattr(sys, 'version_info') or sys.version_info < (2,3,0,'alpha',0):
+#	raise SystemExit, "Python 2.5 or later required to build TimML"
 
 
 from distutils.core import setup, Extension
 
-setup (name = "TimML",
-	   extra_path = 'TimML',
-	   version = "3.3.alpha2.py25",
-	   url="http://www.bakkerhydro.org/timml",
+setup (name = "timml",
+	   extra_path = 'timml',
+	   version = "3.4.0.py27",
 	   author="Mark Bakker",
-	   author_email="markbak@gmail.com",
+	   author_email="mark.bakker@tudelft.nl",
 	   py_modules = ["example1",
 					 "inhomex",
 					 "squareinhom_man1",
@@ -57,6 +56,6 @@ setup (name = "TimML",
 # This trick might be original; I haven't found it anywhere.
 # The precompiled Fortran library is passed as a data file,
 # so that dist does not try and recompile on the destination machine
-       data_files = [("Lib/site-packages/TimML",["besselaes.pyd","besselaes.f90","trace.ppm","capzone.ppm","back.ppm","filesave.ppm","forward.ppm","home.ppm","move.ppm","zoom_to_rect.ppm"])]
+       data_files = [("Lib/site-packages/timmL",["libgcc_s_dw2-1.dll","libgfortran-3.dll","libquadmath-0.dll","besselaes.pyd","besselaes.f90","trace.ppm","capzone.ppm","back.ppm","filesave.ppm","forward.ppm","home.ppm","move.ppm","zoom_to_rect.ppm"])]
 #	   ext_modules= [Extension("besselaes",["besselaes.f90","trianglemodule.c"])]
 	   )
